@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 品牌色板：主色对齐官网品牌蓝 brand-600 #2e56e1；中性色对齐官网冷调 ink 阶；
+       暖橙作点睛色独立成 --brand-accent，不污染 shadcn 中性 --accent；
+       success/warning/info 为业务语义色，与品牌色解绑。 */
+    --background: 0 0% 100%;
+    --foreground: 226 47% 11%; /* ink-900 #0e1326 */
+    --card: 0 0% 100%;
+    --card-foreground: 226 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 226 47% 11%;
+    --primary: 227 75% 53%; /* 品牌蓝 brand-600 #2e56e1 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 226 30% 95%; /* ink-100 #eef0f6 */
+    --secondary-foreground: 224 37% 16%; /* ink-800 */
+    --muted: 226 30% 95%;
+    --muted-foreground: 224 15% 46%; /* ink-500 #646d86 */
+    --accent: 226 30% 95%; /* 中性 hover 底（非品牌橙） */
+    --accent-foreground: 224 37% 16%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 225 23% 90%; /* ink-200 #dfe2eb */
+    --input: 225 23% 90%;
+    --ring: 227 75% 53%; /* 品牌蓝 focus ring */
+    --radius: 0.5rem;
+    --success: 142 76% 36%; /* 成功/完成语义绿 */
+    --warning: 38 92% 50%; /* 警告黄橙（与品牌橙 26° 区分） */
+    --info: 227 84% 58%; /* 信息蓝 brand-500 #3a61ee */
+    --brand-accent: 26 79% 57%; /* 暖橙点睛 #e8843a */
+    --brand-accent-soft: 30 83% 95%; /* 浅橙底 #fdf2e8 */
+    --brand-accent-foreground: 28 79% 40%; /* 深橙字 #b65e16 */
+  }
+
+  .dark {
+    --background: 226 40% 9%; /* 冷调深底（近 ink-900/950） */
+    --foreground: 226 33% 97%; /* ink-50 #f6f7fb */
+    --card: 226 40% 9%;
+    --card-foreground: 226 33% 97%;
+    --popover: 226 40% 9%;
+    --popover-foreground: 226 33% 97%;
+    --primary: 227 84% 58%; /* 暗色用更亮的品牌蓝 brand-500 #3a61ee */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 224 30% 17%;
+    --secondary-foreground: 226 33% 97%;
+    --muted: 224 30% 17%;
+    --muted-foreground: 224 14% 65%;
+    --accent: 224 30% 17%;
+    --accent-foreground: 226 33% 97%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 224 28% 18%;
+    --input: 224 28% 18%;
+    --ring: 227 84% 58%;
+    --success: 142 64% 45%; /* 暗色更亮的成功绿 */
+    --warning: 38 92% 56%;
+    --info: 227 84% 64%;
+    --brand-accent: 26 82% 62%; /* 暗色暖橙 */
+    --brand-accent-soft: 26 36% 18%;
+    --brand-accent-foreground: 29 86% 76%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+  }
+
+  /* 滚动条样式 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
+  }
+}
+
+/* 安全区域适配 */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "@ky-azeroth/cli",
+  "version": "1.2.0",
+  "private": true,
+  "description": "Agent-facing CLI for ky-azeroth business and analytics data",
+  "type": "module",
+  "bin": {
+    "azeroth": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsup && node scripts/postbuild.mjs",
+    "lint": "eslint . --max-warnings=0",
+    "smoke:dist": "node scripts/smoke-dist.mjs",
+    "test": "tsx --test src/**/__tests__/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ky-azeroth/shared": "workspace:*",
+    "axios": "^1.20.0",
+    "commander": "^13.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^10.10.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "globals": "^16.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "typescript-eslint": "^8.68.0"
+  }
+}

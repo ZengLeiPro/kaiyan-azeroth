@@ -1,0 +1,2352 @@
+{
+  "version": 1,
+  "generatedFrom": "pnpm --filter @ky-azeroth/web test:cov:policy",
+  "total": {
+    "statements": 21.87,
+    "branches": 17.32,
+    "functions": 15.75,
+    "lines": 22.37
+  },
+  "files": {
+    "apps/web/src/components/mobile/MobilePageContainer.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/mobile/ResponsiveDataList.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/mobile/ResponsiveDialog.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/ApprovalActions.tsx": {
+      "lines": 53.12,
+      "statements": 53.12,
+      "functions": 62.5,
+      "branches": 61.53
+    },
+    "apps/web/src/components/patterns/ApprovalTimeline.tsx": {
+      "lines": 58.53,
+      "statements": 55.55,
+      "functions": 44.44,
+      "branches": 33.33
+    },
+    "apps/web/src/components/patterns/activity-timeline-panel.tsx": {
+      "lines": 5.47,
+      "statements": 4.7,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/address-picker.tsx": {
+      "lines": 8.69,
+      "statements": 7.84,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/app-error-boundary.tsx": {
+      "lines": 83.33,
+      "statements": 85.71,
+      "functions": 75,
+      "branches": 100
+    },
+    "apps/web/src/components/patterns/approval-detail-drawer.tsx": {
+      "lines": 90.24,
+      "statements": 82.6,
+      "functions": 87.5,
+      "branches": 69.23
+    },
+    "apps/web/src/components/patterns/approval-panel.tsx": {
+      "lines": 75.16,
+      "statements": 72.12,
+      "functions": 75.75,
+      "branches": 53.88
+    },
+    "apps/web/src/components/patterns/approval-quick-actions.tsx": {
+      "lines": 4.16,
+      "statements": 3.84,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/approval-status-badge.tsx": {
+      "lines": 33.33,
+      "statements": 33.33,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/approval-void-request-dialog.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/bulk-delete-confirm.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/business-approval-context.ts": {
+      "lines": 33.33,
+      "statements": 50,
+      "functions": 100,
+      "branches": 12.5
+    },
+    "apps/web/src/components/patterns/business-approval-fallback.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 75
+    },
+    "apps/web/src/components/patterns/business-approval-section.tsx": {
+      "lines": 16.66,
+      "statements": 14.28,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/change-log-panel.tsx": {
+      "lines": 4.28,
+      "statements": 3.61,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/column-visibility.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/command-palette.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/contact-select.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/crud-filter-bar.tsx": {
+      "lines": 2.98,
+      "statements": 2.85,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/crud-table.tsx": {
+      "lines": 86.95,
+      "statements": 86.27,
+      "functions": 93.33,
+      "branches": 82.6
+    },
+    "apps/web/src/components/patterns/customer-multi-select.tsx": {
+      "lines": 2.27,
+      "statements": 2.08,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/customer-select.tsx": {
+      "lines": 88.63,
+      "statements": 88,
+      "functions": 85.71,
+      "branches": 86.48
+    },
+    "apps/web/src/components/patterns/date-range-filter.tsx": {
+      "lines": 1.85,
+      "statements": 1.85,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/delete-confirm.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/department-multi-select.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/department-select.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/drawer-create-shell.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/drawer-stack/DrawerStackHost.tsx": {
+      "lines": 2.08,
+      "statements": 1.85,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/drawer-stack/EntityDetailBody.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/drawer-stack/EntityDetailView.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/drawer-stack/EntityHeaderActions.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/drawer-stack/before-close-context.tsx": {
+      "lines": 4.54,
+      "statements": 4.34,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/drawer-stack/context.tsx": {
+      "lines": 1.75,
+      "statements": 1.65,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/drawer-stack/entity-registry.tsx": {
+      "lines": 72.72,
+      "statements": 66.66,
+      "functions": 57.14,
+      "branches": 60
+    },
+    "apps/web/src/components/patterns/drawer-stack/header-actions-context.tsx": {
+      "lines": 6.66,
+      "statements": 6.66,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/drawer-stack/useEntityHeaderActions.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/employee-multi-select.tsx": {
+      "lines": 5.12,
+      "statements": 4.16,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/employee-select.tsx": {
+      "lines": 5.71,
+      "statements": 5,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/export-button.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/file-upload.tsx": {
+      "lines": 52.23,
+      "statements": 50.7,
+      "functions": 31.25,
+      "branches": 59.32
+    },
+    "apps/web/src/components/patterns/filter-bar-skeleton.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/filter-context.tsx": {
+      "lines": 50,
+      "statements": 50,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/components/patterns/form-dialog.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 87.5
+    },
+    "apps/web/src/components/patterns/form-field.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 93.33
+    },
+    "apps/web/src/components/patterns/generic-mobile-card.tsx": {
+      "lines": 90.9,
+      "statements": 84.61,
+      "functions": 83.33,
+      "branches": 72.72
+    },
+    "apps/web/src/components/patterns/geolocation-button.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/header-right.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/header.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/login-form.tsx": {
+      "lines": 42.62,
+      "statements": 41.93,
+      "functions": 38.46,
+      "branches": 66.66
+    },
+    "apps/web/src/components/patterns/manual-sync-button.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/metric-card.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 87.5
+    },
+    "apps/web/src/components/patterns/mobile-bottom-nav.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/mobile-header.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/mobile-side-menu.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/multi-file-upload.tsx": {
+      "lines": 71.71,
+      "statements": 68,
+      "functions": 62.79,
+      "branches": 59.15
+    },
+    "apps/web/src/components/patterns/network-error.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/notification-center.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/opportunity-select.tsx": {
+      "lines": 5.63,
+      "statements": 4.93,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/payment-select.tsx": {
+      "lines": 1.85,
+      "statements": 1.58,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/personal-filter-controls.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/product-select.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/project-multi-select.tsx": {
+      "lines": 2.27,
+      "statements": 2.08,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/project-quick-picker.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/project-select.tsx": {
+      "lines": 5,
+      "statements": 4.65,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/rate-limit-toast.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/related-entity-link.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/related-entity-list.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/route-guards.tsx": {
+      "lines": 40,
+      "statements": 38.46,
+      "functions": 33.33,
+      "branches": 50
+    },
+    "apps/web/src/components/patterns/row-actions-helpers.tsx": {
+      "lines": 83.33,
+      "statements": 83.33,
+      "functions": 33.33,
+      "branches": 81.25
+    },
+    "apps/web/src/components/patterns/row-actions-menu.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/sale-order-select.tsx": {
+      "lines": 7.81,
+      "statements": 6.94,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/sales-action/action-item-source-banner.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/sales-action/constants.ts": {
+      "lines": 55.88,
+      "statements": 52.77,
+      "functions": 66.66,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/sales-action/evidence-view.tsx": {
+      "lines": 59.09,
+      "statements": 54.16,
+      "functions": 50,
+      "branches": 32.69
+    },
+    "apps/web/src/components/patterns/sales-action/hooks.ts": {
+      "lines": 3.77,
+      "statements": 3.57,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/sales-action/ignore-dialog.tsx": {
+      "lines": 2.85,
+      "statements": 5,
+      "functions": 9.09,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/sales-action/sales-action-drawer.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/sales-action/transfer-dialog.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/sidebar.tsx": {
+      "lines": 58.57,
+      "statements": 57.33,
+      "functions": 46.42,
+      "branches": 69.11
+    },
+    "apps/web/src/components/patterns/standard-toolbar.tsx": {
+      "lines": 60.52,
+      "statements": 61.9,
+      "functions": 46.15,
+      "branches": 71.62
+    },
+    "apps/web/src/components/patterns/status-badge.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 72.72
+    },
+    "apps/web/src/components/patterns/theme-toggle.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/patterns/work-type-select.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/templates/main-layout.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/components/templates/mobile-layout.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/components/templates/responsive-layout.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/components/templates/standard-layout.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/hooks/analytics-invalidation.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 75
+    },
+    "apps/web/src/hooks/use-auth-bootstrap.ts": {
+      "lines": 100,
+      "statements": 95.83,
+      "functions": 100,
+      "branches": 75
+    },
+    "apps/web/src/hooks/use-authenticated-file.ts": {
+      "lines": 48.71,
+      "statements": 45.23,
+      "functions": 37.5,
+      "branches": 28.57
+    },
+    "apps/web/src/hooks/use-business-approval.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/hooks/use-column-visibility.ts": {
+      "lines": 1.44,
+      "statements": 1.25,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/hooks/use-column-widths.ts": {
+      "lines": 87.43,
+      "statements": 83.8,
+      "functions": 87.5,
+      "branches": 70.58
+    },
+    "apps/web/src/hooks/use-crud.ts": {
+      "lines": 62.79,
+      "statements": 60.74,
+      "functions": 72.72,
+      "branches": 54.77
+    },
+    "apps/web/src/hooks/use-debounced-value.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/hooks/use-drawer-create.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/hooks/use-drawer-entity-detail.ts": {
+      "lines": 83.93,
+      "statements": 78.01,
+      "functions": 86.66,
+      "branches": 70
+    },
+    "apps/web/src/hooks/use-employee-search.ts": {
+      "lines": 5.4,
+      "statements": 4.76,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/hooks/use-fetch-entity.ts": {
+      "lines": 93.75,
+      "statements": 90.41,
+      "functions": 100,
+      "branches": 83.56
+    },
+    "apps/web/src/hooks/use-file-upload.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/hooks/use-filter-scheme.ts": {
+      "lines": 71.25,
+      "statements": 69.41,
+      "functions": 66.66,
+      "branches": 65.9
+    },
+    "apps/web/src/hooks/use-filtered-menu-groups.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/hooks/use-geolocation.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/hooks/use-has-permission.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/hooks/use-highlight-navigation.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/hooks/use-import-export.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/hooks/use-manual-filter.ts": {
+      "lines": 95.65,
+      "statements": 96.22,
+      "functions": 100,
+      "branches": 92.85
+    },
+    "apps/web/src/hooks/use-mobile.ts": {
+      "lines": 23.07,
+      "statements": 21.42,
+      "functions": 0,
+      "branches": 16.66
+    },
+    "apps/web/src/hooks/use-scheme-version-watcher.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/hooks/use-server-pagination.ts": {
+      "lines": 89.57,
+      "statements": 86.59,
+      "functions": 84.37,
+      "branches": 82.3
+    },
+    "apps/web/src/hooks/use-token-manager.ts": {
+      "lines": 67.34,
+      "statements": 65.38,
+      "functions": 87.5,
+      "branches": 59.09
+    },
+    "apps/web/src/lib/api.ts": {
+      "lines": 43.96,
+      "statements": 43.31,
+      "functions": 46.15,
+      "branches": 40.94
+    },
+    "apps/web/src/lib/app-update.ts": {
+      "lines": 83.33,
+      "statements": 83.33,
+      "functions": 80,
+      "branches": 100
+    },
+    "apps/web/src/lib/approval-permissions.ts": {
+      "lines": 18.18,
+      "statements": 16.66,
+      "functions": 25,
+      "branches": 15.38
+    },
+    "apps/web/src/lib/auth-token-rotation.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/lib/column-export-formatters.ts": {
+      "lines": 50,
+      "statements": 39.53,
+      "functions": 30,
+      "branches": 14
+    },
+    "apps/web/src/lib/column-renderers.tsx": {
+      "lines": 28.12,
+      "statements": 23.8,
+      "functions": 22.22,
+      "branches": 5.71
+    },
+    "apps/web/src/lib/column-widths.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/lib/columns-from-schema.ts": {
+      "lines": 98.5,
+      "statements": 91.35,
+      "functions": 100,
+      "branches": 86.15
+    },
+    "apps/web/src/lib/date-utils.ts": {
+      "lines": 100,
+      "statements": 96.07,
+      "functions": 100,
+      "branches": 89.47
+    },
+    "apps/web/src/lib/dingtalk.ts": {
+      "lines": 12.5,
+      "statements": 11.21,
+      "functions": 6.89,
+      "branches": 12.3
+    },
+    "apps/web/src/lib/excel-from-schema.ts": {
+      "lines": 100,
+      "statements": 94.44,
+      "functions": 100,
+      "branches": 89.28
+    },
+    "apps/web/src/lib/export-excel.ts": {
+      "lines": 90,
+      "statements": 90.62,
+      "functions": 86.66,
+      "branches": 62.5
+    },
+    "apps/web/src/lib/geocoding.ts": {
+      "lines": 74.1,
+      "statements": 71.09,
+      "functions": 78.26,
+      "branches": 55.1
+    },
+    "apps/web/src/lib/import-excel.ts": {
+      "lines": 58.87,
+      "statements": 58.92,
+      "functions": 60,
+      "branches": 68.75
+    },
+    "apps/web/src/lib/lazy-load.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/lib/logger.ts": {
+      "lines": 85.16,
+      "statements": 83.52,
+      "functions": 89.65,
+      "branches": 73.13
+    },
+    "apps/web/src/lib/payment-display.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 62.5
+    },
+    "apps/web/src/lib/query-client.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/lib/safe-navigation.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/lib/status-colors.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 66.66
+    },
+    "apps/web/src/lib/status-maps.ts": {
+      "lines": 94.36,
+      "statements": 94.52,
+      "functions": 77.77,
+      "branches": 28.57
+    },
+    "apps/web/src/lib/table-preferences.ts": {
+      "lines": 64.7,
+      "statements": 61.11,
+      "functions": 33.33,
+      "branches": 70
+    },
+    "apps/web/src/lib/utils.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/analytics/AnalyticsOverviewPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/CrmAnalyticsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/OrgAnalyticsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/ProjectAnalyticsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/SeoAnalyticsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/SeoSyncLogsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/WebAnalyticsPage.tsx": {
+      "lines": 50,
+      "statements": 47.61,
+      "functions": 21.42,
+      "branches": 86.36
+    },
+    "apps/web/src/pages/analytics/XiaohongshuAnalyticsPage.tsx": {
+      "lines": 8.21,
+      "statements": 7.5,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/components/AnalyticsDateRangePicker.tsx": {
+      "lines": 50,
+      "statements": 50,
+      "functions": 33.33,
+      "branches": 45.45
+    },
+    "apps/web/src/pages/analytics/components/AnalyticsQueryStatus.tsx": {
+      "lines": 100,
+      "statements": 91.66,
+      "functions": 100,
+      "branches": 83.33
+    },
+    "apps/web/src/pages/analytics/components/ChartCard.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 75
+    },
+    "apps/web/src/pages/analytics/components/ContentEngagementTable.tsx": {
+      "lines": 9.09,
+      "statements": 8.33,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/components/ContentQuadrantChart.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/components/DistributionPie.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/components/EngineLandingHeatmap.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/components/FunnelChart.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/components/KpiCard.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/analytics/components/MetricTrendChart.tsx": {
+      "lines": 20,
+      "statements": 20,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/components/RankingBarChart.tsx": {
+      "lines": 12.5,
+      "statements": 12.5,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/components/SimpleFunnel.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/components/WebAnalyticsSections.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/analytics/components/analytics-query-state.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/analytics/components/web-analytics-presenters.ts": {
+      "lines": 65.62,
+      "statements": 65,
+      "functions": 61.11,
+      "branches": 60
+    },
+    "apps/web/src/pages/analytics/components/web-analytics-sections/AcquisitionSection.tsx": {
+      "lines": 55.55,
+      "statements": 55.55,
+      "functions": 22.22,
+      "branches": 42.42
+    },
+    "apps/web/src/pages/analytics/components/web-analytics-sections/ContentSection.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 50
+    },
+    "apps/web/src/pages/analytics/components/web-analytics-sections/ConversionSection.tsx": {
+      "lines": 83.33,
+      "statements": 83.33,
+      "functions": 50,
+      "branches": 50
+    },
+    "apps/web/src/pages/analytics/components/web-analytics-sections/HealthSection.tsx": {
+      "lines": 44.44,
+      "statements": 44.44,
+      "functions": 20,
+      "branches": 10
+    },
+    "apps/web/src/pages/analytics/components/web-analytics-sections/OverviewSection.tsx": {
+      "lines": 75,
+      "statements": 77.77,
+      "functions": 60,
+      "branches": 22.22
+    },
+    "apps/web/src/pages/analytics/components/web-analytics-sections/VidDetailDrawer.tsx": {
+      "lines": 20,
+      "statements": 16.66,
+      "functions": 25,
+      "branches": 2.38
+    },
+    "apps/web/src/pages/analytics/components/web-analytics-sections/VisitorsSection.tsx": {
+      "lines": 66.66,
+      "statements": 66.66,
+      "functions": 33.33,
+      "branches": 22.22
+    },
+    "apps/web/src/pages/analytics/components/web-analytics-sections/types.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/analytics/hooks/use-analytics-overview-data.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/analytics/hooks/use-crm-analytics-data.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/hooks/use-org-analytics-data.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/hooks/use-project-analytics-data.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/analytics/hooks/use-seo-analytics-data.ts": {
+      "lines": 26.31,
+      "statements": 26.31,
+      "functions": 8.69,
+      "branches": 10.41
+    },
+    "apps/web/src/pages/analytics/hooks/use-web-analytics-dashboard-state.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/analytics/hooks/use-web-analytics-data.ts": {
+      "lines": 10.63,
+      "statements": 10.63,
+      "functions": 9.67,
+      "branches": 31.03
+    },
+    "apps/web/src/pages/analytics/hooks/use-xiaohongshu-analytics-data.ts": {
+      "lines": 55.17,
+      "statements": 55.17,
+      "functions": 36.36,
+      "branches": 59.25
+    },
+    "apps/web/src/pages/analytics/xiaohongshu-analytics-page-utils.ts": {
+      "lines": 91.66,
+      "statements": 90.21,
+      "functions": 94.44,
+      "branches": 76.1
+    },
+    "apps/web/src/pages/analytics/xiaohongshu/XiaohongshuCenterPage.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/analytics/xiaohongshu/XiaohongshuCenterShell.tsx": {
+      "lines": 83.33,
+      "statements": 84.21,
+      "functions": 57.14,
+      "branches": 55
+    },
+    "apps/web/src/pages/analytics/xiaohongshu/XiaohongshuCoverageStrip.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 81.25
+    },
+    "apps/web/src/pages/analytics/xiaohongshu/XiaohongshuDatasetPanel.tsx": {
+      "lines": 62.38,
+      "statements": 61.66,
+      "functions": 58.53,
+      "branches": 49.13
+    },
+    "apps/web/src/pages/analytics/xiaohongshu/XiaohongshuDatasetWorkspacePage.tsx": {
+      "lines": 78.04,
+      "statements": 78.26,
+      "functions": 70.58,
+      "branches": 75.67
+    },
+    "apps/web/src/pages/analytics/xiaohongshu/XiaohongshuOperatingInsights.tsx": {
+      "lines": 10.71,
+      "statements": 8.82,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/analytics/xiaohongshu/use-xiaohongshu-datasets.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 77.77
+    },
+    "apps/web/src/pages/analytics/xiaohongshu/xiaohongshu-center-context.tsx": {
+      "lines": 96.66,
+      "statements": 91.42,
+      "functions": 100,
+      "branches": 70.58
+    },
+    "apps/web/src/pages/analytics/xiaohongshu/xiaohongshu-display.ts": {
+      "lines": 92.1,
+      "statements": 93.33,
+      "functions": 85.71,
+      "branches": 89.13
+    },
+    "apps/web/src/pages/analytics/xiaohongshu/xiaohongshu-operating-insights.ts": {
+      "lines": 98.11,
+      "statements": 93.22,
+      "functions": 100,
+      "branches": 88.7
+    },
+    "apps/web/src/pages/approval-flows/ApprovalFlowDesignPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/approval-flows/ApprovalFlowHistoryPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/approval-flows/ApprovalFlowsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/approval-flows/ApprovalSettingsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/approval-flows/components/AddNodeButton.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/approval-flows/components/ApprovalNodeCard.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/approval-flows/components/CcNodeCard.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/approval-flows/components/FlowCanvas.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/approval-flows/components/NodeCard.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/approval-flows/components/NodeSettingsDrawer.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/approval-flows/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/approvals/ApprovalsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/approvals/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/auth/LoginPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/auth/components/LoginMascots.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/bootstrap-drawer-entities.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/crm/contacts/ContactsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/contacts/contact-display.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 86.36
+    },
+    "apps/web/src/pages/crm/contacts/contact-fields.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/contacts/types.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 71.87
+    },
+    "apps/web/src/pages/crm/customers/CustomersPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/customers/components/CustomerBulkCollaboratorsModal.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/customers/components/CustomerBulkEditModal.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/customers/components/CustomerBulkTransferModal.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/customers/components/CustomerDrawerBody.tsx": {
+      "lines": 3.47,
+      "statements": 3.24,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/customers/components/CustomerDuplicateCheckDialog.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/customers/components/CustomerDuplicateWarningDialog.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/customers/components/CustomerLeadProgressModal.tsx": {
+      "lines": 3.33,
+      "statements": 3.22,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/customers/components/CustomerLeadStageChangeModal.tsx": {
+      "lines": 3.57,
+      "statements": 3.57,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/customers/components/LeadsBoard.tsx": {
+      "lines": 63.01,
+      "statements": 62.02,
+      "functions": 54.54,
+      "branches": 55.14
+    },
+    "apps/web/src/pages/crm/customers/customer-fields.tsx": {
+      "lines": 22.58,
+      "statements": 27.77,
+      "functions": 26.47,
+      "branches": 1.29
+    },
+    "apps/web/src/pages/crm/customers/customer-follow-up.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/crm/customers/types.ts": {
+      "lines": 100,
+      "statements": 90.9,
+      "functions": 100,
+      "branches": 82.55
+    },
+    "apps/web/src/pages/crm/invoices/InvoicesPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/invoices/components/InvoiceBulkApproveModal.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/invoices/components/InvoiceBulkEditModal.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/invoices/components/InvoiceBulkTransferModal.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/invoices/invoice-fields.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/crm/invoices/invoice-prefill.ts": {
+      "lines": 100,
+      "statements": 95.23,
+      "functions": 100,
+      "branches": 86.36
+    },
+    "apps/web/src/pages/crm/invoices/types.ts": {
+      "lines": 100,
+      "statements": 92.3,
+      "functions": 100,
+      "branches": 78.84
+    },
+    "apps/web/src/pages/crm/keep-records/KeepRecordsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/keep-records/keep-record-fields.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/crm/keep-records/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/opportunities/OpportunitiesPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/opportunities/components/BoardCard.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/opportunities/components/BoardColumn.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/opportunities/components/BoardView.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/opportunities/components/ConfirmStageDialog.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/opportunities/components/use-opportunity-view.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/opportunities/opportunity-fields.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/crm/opportunities/types.ts": {
+      "lines": 52.17,
+      "statements": 50,
+      "functions": 41.66,
+      "branches": 41.11
+    },
+    "apps/web/src/pages/crm/payments/PaymentsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/payments/components/PaymentBulkApproveModal.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/payments/components/PaymentBulkEditModal.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/payments/components/PaymentBulkTransferModal.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/payments/components/PaymentItemForm.tsx": {
+      "lines": 9.61,
+      "statements": 9.37,
+      "functions": 7.69,
+      "branches": 4.16
+    },
+    "apps/web/src/pages/crm/payments/components/PaymentMergeInvoiceModal.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/payments/payment-fields.tsx": {
+      "lines": 20.18,
+      "statements": 19.82,
+      "functions": 14.54,
+      "branches": 21.42
+    },
+    "apps/web/src/pages/crm/payments/types.ts": {
+      "lines": 96.29,
+      "statements": 96.77,
+      "functions": 90,
+      "branches": 76.25
+    },
+    "apps/web/src/pages/crm/products/CrmProductsPage.tsx": {
+      "lines": 63.88,
+      "statements": 65,
+      "functions": 45,
+      "branches": 42.3
+    },
+    "apps/web/src/pages/crm/products/product-actions.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/crm/products/types.ts": {
+      "lines": 40,
+      "statements": 40,
+      "functions": 25,
+      "branches": 53.84
+    },
+    "apps/web/src/pages/crm/register-drawer-entities.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/crm/sale-orders/SaleOrdersPage.tsx": {
+      "lines": 0.98,
+      "statements": 0.93,
+      "functions": 2.32,
+      "branches": 2.38
+    },
+    "apps/web/src/pages/crm/sale-orders/components/SaleOrderBulkApproveModal.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/sale-orders/components/SaleOrderBulkEditModal.tsx": {
+      "lines": 2.32,
+      "statements": 1.88,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/sale-orders/components/SaleOrderBulkTransferModal.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/sale-orders/components/SaleOrderVoidRequestDialog.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/sale-orders/components/sale-order-bulk-payload.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/crm/sale-orders/sale-order-column-config.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/crm/sale-orders/sale-order-fields.tsx": {
+      "lines": 4.19,
+      "statements": 3.89,
+      "functions": 4.61,
+      "branches": 7.47
+    },
+    "apps/web/src/pages/crm/sale-orders/types.ts": {
+      "lines": 91.42,
+      "statements": 91.89,
+      "functions": 80,
+      "branches": 61.38
+    },
+    "apps/web/src/pages/crm/utils/customer-create-preset.ts": {
+      "lines": 100,
+      "statements": 95.45,
+      "functions": 100,
+      "branches": 90
+    },
+    "apps/web/src/pages/crm/visit-records/VisitRecordsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/visit-records/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/crm/visit-records/use-visit-record-geocoding.ts": {
+      "lines": 93.54,
+      "statements": 92.3,
+      "functions": 85.71,
+      "branches": 76.74
+    },
+    "apps/web/src/pages/crm/visit-records/visit-record-fields.tsx": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/dashboard/DashboardOverviewPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/dashboard/DashboardPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/dashboard/components/PendingApprovalsCard.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/dashboard/components/SalesActionCard.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/error/ForbiddenPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/error/NotFoundPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/accounts/AccountsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/import/FinanceImportPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/ledger/FinanceLedgerHub.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/ledger/components/CompanyLedgerView.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/ledger/components/LedgerAmountCell.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/ledger/components/PersonalLedgerView.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/ledger/components/PnLView.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/ledger/shared.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/payroll/PayrollPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/payroll/components/DepartmentPayrollTable.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/payroll/components/ImportView.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/payroll/components/MonthlySheetView.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/payroll/components/PeriodNavigator.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/payroll/components/RecordListView.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/payroll/components/SummaryCards.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/payroll/hooks/use-monthly-payroll.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/payroll/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/finance/subjects/SubjectsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/mobile/MobileDashboard.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/mobile/MobileWorkbench.tsx": {
+      "lines": 72.22,
+      "statements": 64.44,
+      "functions": 55.55,
+      "branches": 39.13
+    },
+    "apps/web/src/pages/ops/cloud-cost/alerts/CloudAlertsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/ops/cloud-cost/alerts/components/ResolveAlertDialog.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/ops/cloud-cost/alerts/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/ops/cloud-cost/bills/CloudBillsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/ops/cloud-cost/bills/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/ops/cloud-cost/dashboard/CloudCostDashboardPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/ops/cloud-cost/dashboard/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/ops/cloud-cost/instances/CloudInstancesPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/ops/cloud-cost/instances/components/CloudInstanceMetaFormFields.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/ops/cloud-cost/instances/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/ops/cloud-cost/packages/CloudPackagesPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/ops/cloud-cost/packages/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/ops/cloud-cost/renewal/CloudRenewalPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/ops/cloud-cost/renewal/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/ops/cloud-cost/usage/CloudUsageMonitorPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/ops/cloud-cost/usage/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/organization/departments/DepartmentsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/organization/departments/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/organization/employees/EmployeesPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/organization/employees/types.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 75
+    },
+    "apps/web/src/pages/profile/ProfileSettingsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/profile/components/ChangePasswordCard.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/profile/components/PersonalInfoCard.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/profile/components/SessionManagementCard.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/profile/hooks/use-profile-settings.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-records/EffortRecordsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-records/components/ApplyPlanButton.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/projects/effort-records/components/CopyYesterdayButton.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/projects/effort-records/components/DailyTotalIndicator.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-records/components/DayEditor.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-records/components/EffortRow.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-records/components/MyEntryView.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-records/components/PlanEditor.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-records/components/RecordListView.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-records/components/WeekStatusBar.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-records/hooks/use-my-effort.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-records/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-stats/EffortStatsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-stats/components/CompletionCheck.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-stats/components/PersonStats.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-stats/components/ProjectStats.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-stats/hooks/use-effort-stats.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/effort-stats/types.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/pages/projects/list/ProjectsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/list/components/ProjectDrawerBody.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/list/components/ProjectMemberSection.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/list/types.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 82.14
+    },
+    "apps/web/src/pages/projects/tickets/ProjectTicketsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/tickets/components/TicketFormDialog.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/tickets/components/TicketReassignDialog.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/tickets/components/TicketStatsBar.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/tickets/components/TicketStatusBadge.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/projects/tickets/components/TicketTransitionDialog.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/tickets/hooks/use-ticket-stats.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/projects/tickets/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/reports/calendar-events/CalendarEventsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/reports/calendar-events/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/reports/dingtalk-logs/DingtalkLogsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/reports/dingtalk-logs/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/reports/employee-leaves/EmployeeLeavesPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/reports/employee-leaves/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/reports/telesales-dailies/TelesalesDailiesPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/reports/work-dailies/WorkDailiesPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/reports/work-dailies/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/sales-action-items/SalesActionItemsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/RateLimitTestPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/SettingsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/filter-schemes/FilterSchemesPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/filter-schemes/components/AddableFieldsPanel.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/filter-schemes/components/EnabledFieldsEditor.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/filter-schemes/components/KeywordConfigPanel.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/filter-schemes/components/PageKeyList.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/filter-schemes/components/PreviewPanel.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/filter-schemes/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/holidays/HolidaysPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/holidays/MonthMiniCalendar.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/holidays/YearCalendarGrid.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 100
+    },
+    "apps/web/src/pages/system/holidays/hooks.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/holidays/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/notifications/NotificationsPage.tsx": {
+      "lines": 43.9,
+      "statements": 42.85,
+      "functions": 21.42,
+      "branches": 25.49
+    },
+    "apps/web/src/pages/system/notifications/types.ts": {
+      "lines": 10,
+      "statements": 10,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/operation-logs/LoginLogView.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/operation-logs/OperationLogView.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/operation-logs/OperationLogsPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/operation-logs/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/roles/RolesPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/roles/types.ts": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/trash/TrashPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/trash/types.ts": {
+      "lines": 16.66,
+      "statements": 16.66,
+      "functions": 16.66,
+      "branches": 8.33
+    },
+    "apps/web/src/pages/system/ui-demo/UIDemoPage.tsx": {
+      "lines": 0,
+      "statements": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "apps/web/src/pages/system/users/UsersPage.tsx": {
+      "lines": 50,
+      "statements": 50,
+      "functions": 33.33,
+      "branches": 34.37
+    },
+    "apps/web/src/pages/system/users/types.ts": {
+      "lines": 23.52,
+      "statements": 23.52,
+      "functions": 16.66,
+      "branches": 13.15
+    },
+    "apps/web/src/pages/system/users/use-sensitive-action-reauthentication.ts": {
+      "lines": 97.36,
+      "statements": 93.02,
+      "functions": 100,
+      "branches": 71.42
+    },
+    "apps/web/src/stores/auth.ts": {
+      "lines": 86.17,
+      "statements": 80.73,
+      "functions": 90.62,
+      "branches": 69.23
+    },
+    "apps/web/src/stores/header-slot.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/stores/mobile-menu.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    },
+    "apps/web/src/stores/network-error.ts": {
+      "lines": 91.17,
+      "statements": 91.42,
+      "functions": 86.66,
+      "branches": 89.47
+    },
+    "apps/web/src/stores/rate-limit.ts": {
+      "lines": 100,
+      "statements": 97.82,
+      "functions": 100,
+      "branches": 85
+    },
+    "apps/web/src/stores/theme.ts": {
+      "lines": 95.65,
+      "statements": 95.65,
+      "functions": 100,
+      "branches": 72.22
+    },
+    "apps/web/src/utils/api-helpers.ts": {
+      "lines": 100,
+      "statements": 100,
+      "functions": 100,
+      "branches": 100
+    }
+  }
+}

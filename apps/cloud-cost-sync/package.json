@@ -1,0 +1,37 @@
+{
+  "name": "@ky-azeroth/cloud-cost-sync",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "sync": "tsx src/index.ts",
+    "sync:local": "tsx src/index.ts",
+    "sync:dry": "tsx src/index.ts --dry-run",
+    "db:generate": "prisma generate",
+    "build": "tsup",
+    "dev": "tsx watch src/index.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/*/__tests__/*.test.ts"
+  },
+  "dependencies": {
+    "@alicloud/bssopenapi20171214": "^4.1.0",
+    "@alicloud/cms20190101": "^2.0.0",
+    "@alicloud/openapi-client": "^0.4.0",
+    "@alicloud/tea-util": "^1.4.0",
+    "@ky-azeroth/shared": "file:../../packages/shared",
+    "@prisma/client": "^6.19.2",
+    "dotenv": "^16.4.0",
+    "prisma": "^6.19.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^10.10.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "globals": "^16.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "typescript-eslint": "^8.68.0"
+  }
+}

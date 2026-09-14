@@ -1,0 +1,3019 @@
+[
+  {
+    "category": "functional",
+    "description": "认证 - 有效凭据登录成功，返回 JWT Token 和用户信息",
+    "steps": [
+      "步骤 1: 导航至 /login 页面",
+      "步骤 2: 输入有效用户名和密码",
+      "步骤 3: 点击登录按钮",
+      "步骤 4: 验证跳转到首页 /",
+      "步骤 5: 验证 localStorage/Zustand 中存在 accessToken"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "认证 - 无效凭据登录失败，显示错误提示",
+    "steps": [
+      "步骤 1: 导航至 /login 页面",
+      "步骤 2: 输入错误的用户名或密码",
+      "步骤 3: 点击登录按钮",
+      "步骤 4: 验证页面停留在 /login",
+      "步骤 5: 验证显示错误提示信息"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "认证 - 空表单提交触发表单验证错误",
+    "steps": [
+      "步骤 1: 导航至 /login 页面",
+      "步骤 2: 不输入任何内容直接点击登录",
+      "步骤 3: 验证显示必填字段的验证错误"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "认证 - Token 刷新机制正常工作",
+    "steps": [
+      "步骤 1: 使用有效凭据登录",
+      "步骤 2: 调用 POST /api/v1/auth/refresh 接口",
+      "步骤 3: 验证返回新的 accessToken",
+      "步骤 4: 验证旧 token 仍可在有效期内使用"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "认证 - 登出后清除 Token 并跳转到登录页",
+    "steps": [
+      "步骤 1: 以有效用户登录",
+      "步骤 2: 点击用户头像菜单中的登出",
+      "步骤 3: 验证跳转到 /login",
+      "步骤 4: 验证 Token 已被清除",
+      "步骤 5: 验证访问受保护页面被重定向到 /login"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "认证 - 未登录访问受保护路由被重定向到 /login",
+    "steps": [
+      "步骤 1: 清除所有认证状态",
+      "步骤 2: 直接访问 /crm/customers",
+      "步骤 3: 验证被重定向到 /login 页面"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "认证 - 无权限用户访问管理员页面被重定向到 /403",
+    "steps": [
+      "步骤 1: 以非管理员角色用户登录",
+      "步骤 2: 尝试访问 /system/users 管理员页面",
+      "步骤 3: 验证被重定向到 /403 禁止访问页面"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "认证 - 修改密码功能正常",
+    "steps": [
+      "步骤 1: 登录后导航至 /profile",
+      "步骤 2: 输入旧密码和新密码",
+      "步骤 3: 提交修改",
+      "步骤 4: 验证成功提示",
+      "步骤 5: 用新密码重新登录验证"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "API安全 - 未携带 Token 请求业务接口返回 401",
+    "steps": [
+      "步骤 1: 不携带 Authorization header 调用 GET /api/v1/customers",
+      "步骤 2: 验证返回 HTTP 401 状态码",
+      "步骤 3: 验证响应体包含错误信息"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "API安全 - 健康检查接口公开可访问",
+    "steps": [
+      "步骤 1: 不携带 Token 调用 GET /api/v1/health",
+      "步骤 2: 验证返回 HTTP 200",
+      "步骤 3: 验证响应包含健康状态"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 客户列表正常加载和分页",
+    "steps": [
+      "步骤 1: 登录后导航至 /crm/customers",
+      "步骤 2: 验证表格正常渲染，显示客户数据",
+      "步骤 3: 验证分页控件显示总数",
+      "步骤 4: 点击下一页，验证数据切换",
+      "步骤 5: 修改每页显示数量，验证生效"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 创建客户表单验证与提交",
+    "steps": [
+      "步骤 1: 在客户列表页点击新建按钮",
+      "步骤 2: 验证弹出表单对话框",
+      "步骤 3: 不填写必填字段直接提交，验证 Zod 校验错误提示",
+      "步骤 4: 填写所有必填字段（客户名称、简称等）",
+      "步骤 5: 提交表单",
+      "步骤 6: 验证成功提示和列表刷新",
+      "步骤 7: 验证新客户出现在列表中"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 编辑客户信息并保存",
+    "steps": [
+      "步骤 1: 在客户列表页找到一条记录",
+      "步骤 2: 点击操作列的编辑按钮",
+      "步骤 3: 验证表单预填充了当前数据",
+      "步骤 4: 修改客户名称",
+      "步骤 5: 提交保存",
+      "步骤 6: 验证列表中该记录已更新"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 删除客户（软删除）",
+    "steps": [
+      "步骤 1: 在客户列表页找到一条记录",
+      "步骤 2: 点击操作列的删除按钮",
+      "步骤 3: 确认删除对话框",
+      "步骤 4: 验证成功提示",
+      "步骤 5: 验证该客户从列表消失",
+      "步骤 6: 验证 API 返回 deletedAt 已设置（非物理删除）"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 搜索客户按关键字过滤",
+    "steps": [
+      "步骤 1: 在客户列表页的搜索框输入客户名称关键字",
+      "步骤 2: 验证列表自动过滤",
+      "步骤 3: 验证只显示匹配的记录",
+      "步骤 4: 清空搜索框，验证恢复完整列表"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 客户列表排序功能",
+    "steps": [
+      "步骤 1: 在客户列表页点击某列标题（如创建时间）",
+      "步骤 2: 验证列表按该列升序排列",
+      "步骤 3: 再次点击该列标题",
+      "步骤 4: 验证列表按该列降序排列"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 批量删除功能",
+    "steps": [
+      "步骤 1: 在客户列表页勾选多条记录",
+      "步骤 2: 点击批量删除按钮",
+      "步骤 3: 确认批量删除对话框",
+      "步骤 4: 验证所有选中记录从列表消失"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 客户详情查看",
+    "steps": [
+      "步骤 1: 在客户列表页点击某行",
+      "步骤 2: 验证进入客户详情或弹出查看面板",
+      "步骤 3: 验证显示客户完整信息（名称、行业、等级、来源等）"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 乐观锁并发编辑冲突处理",
+    "steps": [
+      "步骤 1: 获取某客户数据（包含 version 字段）",
+      "步骤 2: 使用旧 version 值发起 PUT 更新请求",
+      "步骤 3: 先用正确 version 更新一次成功",
+      "步骤 4: 再用旧 version 发起第二次更新",
+      "步骤 5: 验证返回 409 Conflict 错误"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - API 列表接口支持分页参数",
+    "steps": [
+      "步骤 1: 调用 GET /api/v1/customers?page=1&pageSize=10",
+      "步骤 2: 验证返回 data 数组 + total + page + pageSize",
+      "步骤 3: 调用 page=2 验证返回不同数据",
+      "步骤 4: 验证 pageSize 限制在 1-100 范围"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM联系人 - 联系人 CRUD 完整流程",
+    "steps": [
+      "步骤 1: 导航至 /crm/contacts",
+      "步骤 2: 创建新联系人（关联客户、姓名、手机、邮箱）",
+      "步骤 3: 验证创建成功并出现在列表",
+      "步骤 4: 编辑联系人信息",
+      "步骤 5: 验证更新成功",
+      "步骤 6: 删除联系人",
+      "步骤 7: 验证软删除成功"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM联系人 - 客户选择器组件正常工作",
+    "steps": [
+      "步骤 1: 在联系人表单中点击客户选择器",
+      "步骤 2: 验证弹出可搜索的客户下拉列表",
+      "步骤 3: 输入关键字过滤",
+      "步骤 4: 选择一个客户",
+      "步骤 5: 验证选中的客户名称显示在输入框"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM联系人 - 列表搜索与筛选",
+    "steps": [
+      "步骤 1: 在联系人列表页搜索姓名",
+      "步骤 2: 验证过滤结果正确",
+      "步骤 3: 按客户筛选",
+      "步骤 4: 验证只显示该客户的联系人"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM商机 - 创建商机（含产品明细行）",
+    "steps": [
+      "步骤 1: 导航至 /crm/opportunities",
+      "步骤 2: 点击新建",
+      "步骤 3: 填写商机名称、关联客户、金额、阶段",
+      "步骤 4: 添加产品明细行（产品名、数量、单价）",
+      "步骤 5: 验证小计金额自动计算",
+      "步骤 6: 提交并验证创建成功"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM商机 - 编辑商机阶段和金额",
+    "steps": [
+      "步骤 1: 在商机列表找到一条记录",
+      "步骤 2: 编辑该商机的阶段（如从初步接触到方案报价）",
+      "步骤 3: 修改金额",
+      "步骤 4: 提交保存",
+      "步骤 5: 验证列表中阶段和金额已更新"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM商机 - 列表分页/搜索/排序完整功能",
+    "steps": [
+      "步骤 1: 验证商机列表分页正常",
+      "步骤 2: 搜索商机名称验证过滤",
+      "步骤 3: 按金额列排序验证",
+      "步骤 4: 删除一条商机验证软删除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM商机 - Decimal 金额精度处理",
+    "steps": [
+      "步骤 1: 创建一个金额为 123456.78 的商机",
+      "步骤 2: 验证 API 提交时金额为 String 类型",
+      "步骤 3: 验证 API 返回后前端正确显示为 Number",
+      "步骤 4: 验证精度不丢失（不出现浮点误差）"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM合同订单 - 创建订单（含产品明细行快照）",
+    "steps": [
+      "步骤 1: 导航至 /crm/sale-orders",
+      "步骤 2: 创建新订单，关联客户和商机",
+      "步骤 3: 添加产品明细行",
+      "步骤 4: 验证订单金额/应收金额自动计算",
+      "步骤 5: 提交并验证成功"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM合同订单 - 编辑订单并更新产品明细行",
+    "steps": [
+      "步骤 1: 编辑已有订单",
+      "步骤 2: 修改产品明细行（数量/单价/折扣）",
+      "步骤 3: 验证小计和总金额重新计算",
+      "步骤 4: 保存并验证更新成功"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM合同订单 - 列表和搜索功能",
+    "steps": [
+      "步骤 1: 验证订单列表加载正常",
+      "步骤 2: 搜索订单标题",
+      "步骤 3: 按客户筛选",
+      "步骤 4: 验证分页功能"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM回款 - 创建回款记录",
+    "steps": [
+      "步骤 1: 导航至 /crm/payments",
+      "步骤 2: 创建新回款记录（关联订单、金额、支付类型）",
+      "步骤 3: 验证 Decimal 金额提交为 String",
+      "步骤 4: 提交并验证成功"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM回款 - 编辑和删除回款",
+    "steps": [
+      "步骤 1: 编辑已有回款记录",
+      "步骤 2: 修改金额和支付类型",
+      "步骤 3: 保存并验证更新",
+      "步骤 4: 删除一条回款记录",
+      "步骤 5: 验证软删除成功"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM开票 - 发票 CRUD 完整流程",
+    "steps": [
+      "步骤 1: 导航至 /crm/invoices",
+      "步骤 2: 创建发票（关联订单、金额、发票类型、税号）",
+      "步骤 3: 验证创建成功",
+      "步骤 4: 编辑发票状态",
+      "步骤 5: 删除发票验证软删除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM开票 - 列表搜索和分页",
+    "steps": ["步骤 1: 验证发票列表正常加载", "步骤 2: 按发票号搜索", "步骤 3: 验证分页切换"],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM跟进记录 - 创建跟进记录（含附件上传）",
+    "steps": [
+      "步骤 1: 导航至 /crm/keep-records",
+      "步骤 2: 创建新跟进记录（选择客户、联系人、类型、内容）",
+      "步骤 3: 上传附件",
+      "步骤 4: 提交并验证成功",
+      "步骤 5: 验证列表中新记录显示附件标记"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM跟进记录 - 编辑和删除",
+    "steps": [
+      "步骤 1: 编辑已有跟进记录",
+      "步骤 2: 修改内容和类型",
+      "步骤 3: 保存验证更新",
+      "步骤 4: 删除并验证软删除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM拜访签到 - 创建拜访记录",
+    "steps": [
+      "步骤 1: 导航至 /crm/visit-records",
+      "步骤 2: 创建新拜访记录（客户、联系人、类型、签到地址）",
+      "步骤 3: 填写拜访内容",
+      "步骤 4: 提交并验证成功"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM拜访签到 - 列表查询和筛选",
+    "steps": [
+      "步骤 1: 验证拜访记录列表加载",
+      "步骤 2: 按客户筛选",
+      "步骤 3: 按日期范围筛选",
+      "步骤 4: 验证分页功能"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM产品 - 产品目录 CRUD",
+    "steps": [
+      "步骤 1: 导航至 /crm/products",
+      "步骤 2: 创建新产品（名称、编号、单位、标准价格）",
+      "步骤 3: 验证创建成功",
+      "步骤 4: 编辑产品信息",
+      "步骤 5: 删除产品验证软删除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM产品 - Decimal 标准价格精度",
+    "steps": [
+      "步骤 1: 创建一个标准价格为 999.99 的产品",
+      "步骤 2: 验证提交时价格为 String",
+      "步骤 3: 验证列表中显示精确的价格",
+      "步骤 4: 编辑价格为 1234.56 并保存",
+      "步骤 5: 验证精度无丢失"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM日报 - 工作日报 CRUD",
+    "steps": [
+      "步骤 1: 导航至 /reports/work-dailies",
+      "步骤 2: 创建日报（日期、类型、内容摘要）",
+      "步骤 3: 验证创建成功",
+      "步骤 4: 编辑日报内容",
+      "步骤 5: 验证更新成功"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "项目 - 创建项目并管理成员",
+    "steps": [
+      "步骤 1: 导航至 /projects",
+      "步骤 2: 创建新项目（名称、描述）",
+      "步骤 3: 验证项目创建成功",
+      "步骤 4: 进入项目详情，添加成员",
+      "步骤 5: 验证成员列表更新",
+      "步骤 6: 移除一个成员",
+      "步骤 7: 验证成员已被移除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "项目 - 项目列表搜索和删除",
+    "steps": [
+      "步骤 1: 验证项目列表正常加载",
+      "步骤 2: 搜索项目名称",
+      "步骤 3: 编辑项目信息",
+      "步骤 4: 删除项目验证软删除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "工作项 - 创建工作项（任务/缺陷/需求）",
+    "steps": [
+      "步骤 1: 导航至 /projects/work-items",
+      "步骤 2: 创建新工作项（标题、类型、优先级、分配人）",
+      "步骤 3: 设置预估工时和截止日期",
+      "步骤 4: 提交并验证成功"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "工作项 - 编辑工作项状态和进度",
+    "steps": [
+      "步骤 1: 编辑已有工作项",
+      "步骤 2: 修改状态为进行中",
+      "步骤 3: 更新进度百分比",
+      "步骤 4: 保存并验证更新"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "工作项 - 列表筛选和排序",
+    "steps": [
+      "步骤 1: 按项目筛选工作项",
+      "步骤 2: 按状态筛选",
+      "步骤 3: 按优先级排序",
+      "步骤 4: 验证分页功能"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "工时记录 - 创建工时记录",
+    "steps": [
+      "步骤 1: 导航至 /projects/effort-records",
+      "步骤 2: 创建新工时记录（关联工作项、实际工时、描述）",
+      "步骤 3: 设置开始日期和结束日期",
+      "步骤 4: 提交并验证成功"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "工时记录 - 编辑和删除",
+    "steps": [
+      "步骤 1: 编辑已有工时记录",
+      "步骤 2: 修改工时和描述",
+      "步骤 3: 保存验证更新",
+      "步骤 4: 删除并验证软删除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "钉钉日志 - 只读列表正常展示",
+    "steps": [
+      "步骤 1: 导航至 /reports/dingtalk-logs",
+      "步骤 2: 验证日志列表正常加载",
+      "步骤 3: 验证分页功能正常",
+      "步骤 4: 验证无新建/编辑/删除按钮（只读）"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "钉钉日志 - 搜索和日期筛选",
+    "steps": ["步骤 1: 搜索日志模板名称", "步骤 2: 按日期范围筛选", "步骤 3: 验证过滤结果正确"],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "日程事件 - 只读列表展示",
+    "steps": [
+      "步骤 1: 导航至 /reports/calendar-events",
+      "步骤 2: 验证日程列表正常加载",
+      "步骤 3: 验证显示事件标题、时间、地点",
+      "步骤 4: 验证只读模式"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "离职记录 - 只读列表展示",
+    "steps": [
+      "步骤 1: 导航至 /reports/employee-leaves",
+      "步骤 2: 验证列表正常加载",
+      "步骤 3: 验证显示姓名、手机、离职时间",
+      "步骤 4: 验证只读模式"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "员工管理 - 员工 CRUD 完整流程",
+    "steps": [
+      "步骤 1: 导航至 /organization/employees",
+      "步骤 2: 创建新员工（姓名、手机、邮箱、性别、岗位）",
+      "步骤 3: 验证创建成功",
+      "步骤 4: 编辑员工信息",
+      "步骤 5: 验证更新成功",
+      "步骤 6: 删除员工验证软删除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "员工管理 - 员工列表搜索与分页",
+    "steps": [
+      "步骤 1: 搜索员工姓名",
+      "步骤 2: 验证过滤结果",
+      "步骤 3: 验证分页正常",
+      "步骤 4: 验证员工选择器组件可用"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "员工管理 - 员工选择器下拉搜索",
+    "steps": [
+      "步骤 1: 在需要选择员工的表单中点击员工选择器",
+      "步骤 2: 输入员工姓名搜索",
+      "步骤 3: 验证搜索结果正确",
+      "步骤 4: 选择并验证回填"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "部门管理 - 部门树形结构显示",
+    "steps": [
+      "步骤 1: 导航至 /organization/departments",
+      "步骤 2: 验证部门树正常渲染",
+      "步骤 3: 展开/折叠子部门",
+      "步骤 4: 验证部门层级关系正确"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "部门管理 - 创建子部门",
+    "steps": [
+      "步骤 1: 在部门管理页面选择一个父部门",
+      "步骤 2: 创建子部门（名称、排序）",
+      "步骤 3: 验证子部门出现在正确的父节点下"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "部门管理 - 编辑和删除部门",
+    "steps": [
+      "步骤 1: 编辑部门名称",
+      "步骤 2: 验证更新成功",
+      "步骤 3: 删除无子部门的空部门",
+      "步骤 4: 验证软删除成功"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "部门管理 - 部门经理和员工归属管理",
+    "steps": [
+      "步骤 1: 为部门设置经理",
+      "步骤 2: 验证经理显示正确",
+      "步骤 3: 向部门添加员工",
+      "步骤 4: 验证员工列表",
+      "步骤 5: 从部门移除员工"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "部门管理 - 部门选择器组件",
+    "steps": [
+      "步骤 1: 在使用部门选择器的表单中点击选择器",
+      "步骤 2: 验证弹出部门树结构",
+      "步骤 3: 选择一个部门",
+      "步骤 4: 验证回填到表单"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批流程 - 创建审批流程",
+    "steps": [
+      "步骤 1: 导航至 /approval/flows",
+      "步骤 2: 创建新审批流程（名称、事件类型）",
+      "步骤 3: 进入流程设计页面",
+      "步骤 4: 添加审批节点（指定审批人）",
+      "步骤 5: 保存流程",
+      "步骤 6: 验证流程出现在列表中"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批流程 - 激活和停用流程",
+    "steps": [
+      "步骤 1: 在流程列表找到一个未激活的流程",
+      "步骤 2: 点击激活",
+      "步骤 3: 验证状态变为激活",
+      "步骤 4: 停用流程",
+      "步骤 5: 验证状态变为停用"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批流程 - 多节点流程设计",
+    "steps": [
+      "步骤 1: 创建含 3 个审批节点的流程",
+      "步骤 2: 设置不同的审批人类型（指定人、角色、上级）",
+      "步骤 3: 保存并验证节点顺序",
+      "步骤 4: 编辑节点",
+      "步骤 5: 删除节点",
+      "步骤 6: 验证流程结构完整"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批实例 - 提交审批",
+    "steps": [
+      "步骤 1: 确保存在已激活的审批流程",
+      "步骤 2: 提交一个审批实例（关联业务表单）",
+      "步骤 3: 验证审批实例创建成功",
+      "步骤 4: 验证当前节点和状态正确"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批实例 - 审批通过",
+    "steps": [
+      "步骤 1: 以审批人身份登录",
+      "步骤 2: 在待办列表找到待审批实例",
+      "步骤 3: 点击审批通过",
+      "步骤 4: 填写审批意见",
+      "步骤 5: 验证审批状态更新",
+      "步骤 6: 验证审批时间线显示操作记录"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批实例 - 审批驳回",
+    "steps": [
+      "步骤 1: 以审批人身份处理待审批实例",
+      "步骤 2: 点击驳回",
+      "步骤 3: 填写驳回原因",
+      "步骤 4: 验证实例状态变为已驳回"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批实例 - 发起人撤回",
+    "steps": [
+      "步骤 1: 以发起人身份登录",
+      "步骤 2: 找到待审批的实例",
+      "步骤 3: 点击撤回",
+      "步骤 4: 验证实例状态变为已撤回"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批实例 - 管理员强制审批",
+    "steps": [
+      "步骤 1: 以管理员身份登录",
+      "步骤 2: 在所有审批列表找到实例",
+      "步骤 3: 执行管理员强制审批",
+      "步骤 4: 验证实例状态变为已通过"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批列表 - 待办/已办/发起/抄送分类查看",
+    "steps": [
+      "步骤 1: 导航至 /approval/list",
+      "步骤 2: 切换待办 Tab，验证显示待审批实例",
+      "步骤 3: 切换已办 Tab，验证显示已处理实例",
+      "步骤 4: 切换我发起的 Tab",
+      "步骤 5: 切换抄送我的 Tab",
+      "步骤 6: 验证各分类数据正确"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批详情 - 审批时间线和表单详情",
+    "steps": [
+      "步骤 1: 在审批列表点击某个实例",
+      "步骤 2: 验证显示审批详情抽屉",
+      "步骤 3: 验证审批时间线显示各节点操作",
+      "步骤 4: 验证关联的业务表单数据正确显示"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批设置 - 模块审批开关",
+    "steps": [
+      "步骤 1: 导航至 /approval/settings",
+      "步骤 2: 查看各模块的审批启用状态",
+      "步骤 3: 切换某模块的审批开关",
+      "步骤 4: 验证设置保存成功"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批流程 - 历史版本查看",
+    "steps": [
+      "步骤 1: 进入审批流程历史页面",
+      "步骤 2: 验证显示流程的所有历史版本",
+      "步骤 3: 查看旧版本详情",
+      "步骤 4: 验证版本号和时间正确"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "用户管理 - 用户 CRUD 完整流程",
+    "steps": [
+      "步骤 1: 导航至 /system/users",
+      "步骤 2: 创建新用户（用户名、手机、邮箱、关联员工）",
+      "步骤 3: 分配角色",
+      "步骤 4: 验证创建成功",
+      "步骤 5: 编辑用户信息",
+      "步骤 6: 验证更新成功",
+      "步骤 7: 删除用户验证软删除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "用户管理 - 用户列表搜索分页",
+    "steps": [
+      "步骤 1: 搜索用户名",
+      "步骤 2: 验证过滤正确",
+      "步骤 3: 验证分页功能",
+      "步骤 4: 验证角色信息显示"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "用户管理 - API 响应不包含密码字段",
+    "steps": [
+      "步骤 1: 调用 GET /api/v1/users",
+      "步骤 2: 验证响应中每个用户对象不包含 password 或 passwordHash 字段",
+      "步骤 3: 调用 GET /api/v1/users/:id",
+      "步骤 4: 验证单个用户响应也不包含密码"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "角色管理 - 角色 CRUD 完整流程",
+    "steps": [
+      "步骤 1: 导航至 /system/roles",
+      "步骤 2: 创建新角色（名称、描述）",
+      "步骤 3: 配置权限（模块级 view/create/edit/delete）",
+      "步骤 4: 验证创建成功",
+      "步骤 5: 编辑角色权限",
+      "步骤 6: 删除角色"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "角色管理 - 权限矩阵配置",
+    "steps": [
+      "步骤 1: 编辑一个角色",
+      "步骤 2: 勾选各模块的权限",
+      "步骤 3: 保存验证权限持久化",
+      "步骤 4: 验证分配该角色的用户权限生效"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "系统参数 - 查看和修改系统配置",
+    "steps": [
+      "步骤 1: 导航至 /system/params",
+      "步骤 2: 验证参数列表加载",
+      "步骤 3: 编辑某参数值",
+      "步骤 4: 保存并验证更新"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "操作日志 - 查看审计日志列表",
+    "steps": [
+      "步骤 1: 导航至 /system/logs",
+      "步骤 2: 验证操作日志列表加载",
+      "步骤 3: 验证显示操作人、模块、动作、时间等",
+      "步骤 4: 搜索和分页功能正常",
+      "步骤 5: 验证只读（无编辑/删除）"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "登录日志 - 查看登录审计记录",
+    "steps": [
+      "步骤 1: 导航至登录日志页面",
+      "步骤 2: 验证登录日志列表加载",
+      "步骤 3: 验证显示用户名、IP、浏览器、状态",
+      "步骤 4: 验证只读"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "通知中心 - 查看和标记已读",
+    "steps": [
+      "步骤 1: 导航至 /notifications",
+      "步骤 2: 验证通知列表加载",
+      "步骤 3: 点击某条未读通知",
+      "步骤 4: 验证标记为已读",
+      "步骤 5: 验证已读/未读状态区分"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "仪表盘 - 统计数据正常展示",
+    "steps": [
+      "步骤 1: 登录后进入首页 /",
+      "步骤 2: 验证统计卡片正常渲染（客户数、商机数等）",
+      "步骤 3: 验证 Dashboard API 返回数据格式正确"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "仪表盘概览 - 详细数据分析页面",
+    "steps": [
+      "步骤 1: 导航至 /dashboard",
+      "步骤 2: 验证概览页面正常渲染",
+      "步骤 3: 验证各统计模块数据正确"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "个人设置 - 查看和编辑个人资料",
+    "steps": [
+      "步骤 1: 导航至 /profile",
+      "步骤 2: 验证显示当前用户信息",
+      "步骤 3: 修改个人信息",
+      "步骤 4: 验证保存成功"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "回收站 - 查看已删除数据",
+    "steps": [
+      "步骤 1: 导航至 /trash",
+      "步骤 2: 验证显示各模块已软删除的记录",
+      "步骤 3: 验证显示删除时间和原始数据"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "回收站 - 恢复已删除数据",
+    "steps": [
+      "步骤 1: 在回收站找到一条已删除记录",
+      "步骤 2: 点击恢复按钮",
+      "步骤 3: 验证记录从回收站消失",
+      "步骤 4: 验证记录重新出现在原列表页面"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "地址选择器 - 省市区三级联动",
+    "steps": [
+      "步骤 1: 在包含地址选择器的表单中点击省份",
+      "步骤 2: 选择一个省份",
+      "步骤 3: 验证城市列表自动更新",
+      "步骤 4: 选择城市",
+      "步骤 5: 验证区县列表自动更新",
+      "步骤 6: 选择区县并验证完整地址回填"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "文件上传 - 单文件上传",
+    "steps": [
+      "步骤 1: 在包含文件上传的表单中选择文件",
+      "步骤 2: 验证上传进度显示",
+      "步骤 3: 验证上传成功后显示文件名",
+      "步骤 4: 验证可以删除已上传文件"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "文件上传 - 多文件上传",
+    "steps": [
+      "步骤 1: 在支持多文件上传的表单中选择多个文件",
+      "步骤 2: 验证所有文件显示在列表中",
+      "步骤 3: 验证可以单独删除某个文件",
+      "步骤 4: 提交表单验证附件关联保存"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "数据导出 - 列表数据导出",
+    "steps": [
+      "步骤 1: 在客户列表页面点击导出按钮",
+      "步骤 2: 验证导出操作启动",
+      "步骤 3: 验证下载文件格式正确"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "列可见性 - 表格列显示/隐藏切换",
+    "steps": [
+      "步骤 1: 在 CRUD 列表页面点击列设置按钮",
+      "步骤 2: 取消勾选某列",
+      "步骤 3: 验证该列从表格中隐藏",
+      "步骤 4: 重新勾选验证列恢复"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "行选择 - 表格多行选择功能",
+    "steps": [
+      "步骤 1: 在 CRUD 列表页面点击行前的复选框",
+      "步骤 2: 验证行被选中（高亮显示）",
+      "步骤 3: 点击全选复选框",
+      "步骤 4: 验证所有行被选中",
+      "步骤 5: 验证批量操作按钮出现"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "日期范围筛选 - 按日期范围过滤列表数据",
+    "steps": [
+      "步骤 1: 在支持日期筛选的列表页面选择开始日期",
+      "步骤 2: 选择结束日期",
+      "步骤 3: 验证列表数据按日期范围过滤",
+      "步骤 4: 清除日期筛选验证恢复"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "命令面板 - 全局搜索功能",
+    "steps": [
+      "步骤 1: 按下 Ctrl+K (或 Cmd+K) 打开命令面板",
+      "步骤 2: 验证命令面板弹出",
+      "步骤 3: 输入搜索关键字",
+      "步骤 4: 验证搜索结果显示匹配的页面/功能",
+      "步骤 5: 选择一个结果验证导航"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "深色主题 - 切换深色/浅色模式",
+    "steps": [
+      "步骤 1: 点击主题切换按钮",
+      "步骤 2: 验证切换到深色模式",
+      "步骤 3: 验证所有组件颜色正确适配",
+      "步骤 4: 再次点击切换回浅色",
+      "步骤 5: 验证主题偏好持久化（刷新后保持）"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "API 通用分页响应格式验证",
+    "steps": [
+      "步骤 1: 调用任意列表 API（如 GET /api/v1/customers?page=1&pageSize=10）",
+      "步骤 2: 验证响应包含 data 数组",
+      "步骤 3: 验证响应包含 total（总数）",
+      "步骤 4: 验证响应包含 page 和 pageSize",
+      "步骤 5: 对多个模块重复验证格式一致性"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "API 创建接口 Zod 验证错误返回格式",
+    "steps": [
+      "步骤 1: 调用 POST /api/v1/customers 但 body 为空",
+      "步骤 2: 验证返回 400 状态码",
+      "步骤 3: 验证错误响应包含字段级别的验证错误",
+      "步骤 4: 验证错误格式可被前端解析和展示"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "API 更新接口乐观锁（version）验证",
+    "steps": [
+      "步骤 1: GET 获取某资源（含 version 字段）",
+      "步骤 2: PUT 更新时携带正确 version，验证成功",
+      "步骤 3: 再次使用旧 version PUT 更新",
+      "步骤 4: 验证返回 409 Conflict",
+      "步骤 5: 对 customers/employees/opportunities 各验证一次"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "API 软删除验证 - DELETE 不物理删除数据",
+    "steps": [
+      "步骤 1: 创建一条测试客户",
+      "步骤 2: DELETE /api/v1/customers/:id",
+      "步骤 3: 验证返回成功",
+      "步骤 4: 直接查询数据库验证 deletedAt 已设置",
+      "步骤 5: GET 列表验证该记录不在常规列表中"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "API Query DTO 验证 - 无效分页参数",
+    "steps": [
+      "步骤 1: 调用 GET /api/v1/customers?page=0",
+      "步骤 2: 验证返回 400（page 最小为 1）",
+      "步骤 3: 调用 GET /api/v1/customers?pageSize=200",
+      "步骤 4: 验证 pageSize 被限制或返回错误"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "API 选择器接口 - selectionPagination 大量数据加载",
+    "steps": [
+      "步骤 1: 调用客户选择器接口（如 GET /api/v1/customers/all）",
+      "步骤 2: 验证支持 keyword 搜索参数",
+      "步骤 3: 验证 pageSize 上限为 10000",
+      "步骤 4: 验证返回格式正确"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Prisma 迁移状态一致性",
+    "steps": [
+      "步骤 1: 运行 prisma migrate status",
+      "步骤 2: 验证所有迁移已应用",
+      "步骤 3: 验证无待处理的迁移",
+      "步骤 4: 运行 prisma validate 验证 schema 语法正确"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Shared 包类型导出完整性",
+    "steps": [
+      "步骤 1: 检查 packages/shared/src/types/index.ts 导出所有类型文件",
+      "步骤 2: 检查 packages/shared/src/schemas/index.ts 导出所有 schema 文件",
+      "步骤 3: 运行 pnpm build --filter=@ky-azeroth/shared",
+      "步骤 4: 验证构建成功，无遗漏导出"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "前端类型强绑定验证",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:shared",
+      "步骤 2: 验证所有 CRUD 页面的 types.ts 包含 Profile extends IXxxResponse",
+      "步骤 3: 验证所有 types.ts 包含 toXxxProfile() 转换函数",
+      "步骤 4: 验证所有 types.ts 包含 toXxxFormData() 转换函数"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "后端 DTO nestjs-zod 规范验证",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:dto",
+      "步骤 2: 验证所有 Create/Update DTO 使用 createZodDto()",
+      "步骤 3: 运行 pnpm run check:query-dto",
+      "步骤 4: 验证所有 Query DTO 使用 createZodDto(queryXxxSchema)"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "check:all 25项检查全部通过",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:all",
+      "步骤 2: 验证 check:shared 通过",
+      "步骤 3: 验证 check:dto 通过",
+      "步骤 4: 验证 check:query-dto 通过",
+      "步骤 5: 验证 check:decimal 通过",
+      "步骤 6: 验证 check:no-any 通过",
+      "步骤 7: 验证 check:optional 通过",
+      "步骤 8: 验证 check:usecrud 通过",
+      "步骤 9: 验证 check:transform 通过",
+      "步骤 10: 验证 check:controller-query-dto 通过",
+      "步骤 11: 验证 check:controller-body-dto 通过",
+      "步骤 12: 验证 check:prisma-coverage 通过",
+      "步骤 13: 验证 check:controller-return-type 通过",
+      "步骤 14: 验证 check:json-helpers 通过",
+      "步骤 15: 验证 check:seed-no-raw-sql 通过",
+      "步骤 16: 验证 check:ts-expect-error 通过",
+      "步骤 17: 验证 check:query-schema-pagination 通过",
+      "步骤 18: 验证 check:manual-validation 通过",
+      "步骤 19: 验证 check:ui-layering 通过",
+      "步骤 20: 验证 check:no-prisma-web 通过",
+      "步骤 21: 验证 check:service-raw-sql 通过",
+      "步骤 22: 验证 check:jwt-guard 通过",
+      "步骤 23: 验证 check:controller-route-naming 通过",
+      "步骤 24: 验证 check:helmet 通过",
+      "步骤 25: 验证 check:response-sensitive 通过",
+      "步骤 26: 验证 check:optimistic-lock 通过",
+      "步骤 27: 验证 prisma validate 通过"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "TypeScript 类型检查通过",
+    "steps": [
+      "步骤 1: 运行 pnpm typecheck",
+      "步骤 2: 验证 packages/shared 无类型错误",
+      "步骤 3: 验证 apps/server 无类型错误",
+      "步骤 4: 验证 apps/web 无类型错误"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "项目构建成功",
+    "steps": [
+      "步骤 1: 运行 pnpm build",
+      "步骤 2: 验证 shared 包构建成功",
+      "步骤 3: 验证 server 构建成功",
+      "步骤 4: 验证 web 构建成功",
+      "步骤 5: 验证无遗漏导出或缺依赖错误"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "ESLint 代码规范检查通过",
+    "steps": [
+      "步骤 1: 运行 pnpm lint",
+      "步骤 2: 验证 apps/web 无 lint 错误",
+      "步骤 3: 验证 apps/server 无 lint 错误",
+      "步骤 4: 验证 packages/shared 无 lint 错误"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Prettier 格式化检查通过",
+    "steps": ["步骤 1: 运行 pnpm format:check", "步骤 2: 验证所有文件格式符合 Prettier 规则"],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "前端路由配置完整性",
+    "steps": [
+      "步骤 1: 检查 App.tsx 中所有路由定义",
+      "步骤 2: 验证每个菜单项对应有路由",
+      "步骤 3: 验证受保护路由有 PrivateRoute 包裹",
+      "步骤 4: 验证管理员路由有 RoleRoute 包裹",
+      "步骤 5: 手动访问每个路由验证不报 404"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "菜单配置与路由一致性",
+    "steps": [
+      "步骤 1: 读取 menu-config.ts 中所有菜单项",
+      "步骤 2: 验证每个菜单 path 对应 App.tsx 中有效路由",
+      "步骤 3: 验证菜单图标正常显示",
+      "步骤 4: 验证菜单分组与路由前缀一致"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 表单 CrudFormField 错误提示集成",
+    "steps": [
+      "步骤 1: 在客户表单中不填必填字段提交",
+      "步骤 2: 验证每个必填字段下方显示 Zod 校验错误文案",
+      "步骤 3: 填入有效值后验证错误自动消失",
+      "步骤 4: 验证使用 crud.getFieldError() 而非手动 if 判断"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "useCrud hook - schema 参数必须传入",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:usecrud",
+      "步骤 2: 验证所有使用 useCrud 的页面传入了 schema 参数",
+      "步骤 3: 验证 schema 来源为 shared 或 .extend() 扩展"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Decimal 精度 - 所有金额字段读取 Number() 提交 String()",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:decimal",
+      "步骤 2: 验证所有 toXxxProfile() 中 Decimal 字段使用 Number()",
+      "步骤 3: 验证所有 toXxxPayload() 中 Decimal 字段使用 String()"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "禁止 any 类型 - 全项目无 any 使用",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:no-any",
+      "步骤 2: 验证 apps/web 无 any",
+      "步骤 3: 验证 apps/server 无 any",
+      "步骤 4: 验证 packages/shared 无 any"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Controller 路由命名规范 - 扁平 kebab-case",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:controller-route-naming",
+      "步骤 2: 验证所有 Controller 路由为 kebab-case",
+      "步骤 3: 验证无版本号前缀（由框架自动添加）",
+      "步骤 4: 验证无 /api 前缀（由 globalPrefix 处理）"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Helmet 安全中间件启用验证",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:helmet",
+      "步骤 2: 验证 main.ts 中导入并使用 Helmet",
+      "步骤 3: 调用 API 验证响应包含安全头（X-Content-Type-Options 等）"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Response 接口无敏感字段",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:response-sensitive",
+      "步骤 2: 验证所有 IXxxResponse 接口不包含 password/secret/apiKey",
+      "步骤 3: 验证所有 Response Schema 不包含敏感字段"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Service 乐观锁实现验证",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:optimistic-lock",
+      "步骤 2: 验证所有 Service update 方法使用 version where 条件",
+      "步骤 3: 验证捕获 P2025 错误并抛出 ConflictException"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Seed 文件禁止原生 SQL",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:seed-no-raw-sql",
+      "步骤 2: 验证 seed.ts 和 seeds/ 目录下无 $executeRaw/$queryRaw",
+      "步骤 3: 验证所有 seed 操作使用 Prisma Client API"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Controller @Body 参数必须使用 DTO 类型",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:controller-body-dto",
+      "步骤 2: 验证所有 @Body() 参数有明确的 DTO 类型",
+      "步骤 3: 验证无裸 @Body() 或 @Body() body: any"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Controller 返回类型验证",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:controller-return-type",
+      "步骤 2: 验证所有 Controller 方法有明确的返回类型声明"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "UI 分层规范 - pages 组件不跨页面引用",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:ui-layering",
+      "步骤 2: 验证 pages/*/components/ 不被其他页面引用",
+      "步骤 3: 验证可复用组件在 patterns/ 目录"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "前端禁止导入 @prisma/client",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:no-prisma-web",
+      "步骤 2: 验证 apps/web 中无 @prisma/client 导入",
+      "步骤 3: 验证所有类型来自 @ky-azeroth/shared"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "JSON 字段使用 json-type-helpers",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:json-helpers",
+      "步骤 2: 验证写入 Prisma JSON 字段使用封装函数",
+      "步骤 3: 验证无直接 as unknown as Prisma.InputJsonValue"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "转换函数字段映射完整性",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:transform",
+      "步骤 2: 验证 toXxxProfile() 覆盖了 IXxxResponse 所有字段",
+      "步骤 3: 验证 toXxxPayload() 覆盖了 ICreateXxx/IUpdateXxx 所有字段"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Query Schema 分页基础验证",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:query-schema-pagination",
+      "步骤 2: 验证所有 queryXxxSchema 基于 paginationSchema 或 selectionPaginationSchema",
+      "步骤 3: 验证分页默认值正确（page>=1, pageSize 1-100）"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "禁止手动表单验证模式",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:manual-validation",
+      "步骤 2: 验证无 if + toast.error 手动验证",
+      "步骤 3: 验证所有验证通过 Zod schema 声明式实现"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Prisma Coverage - 每个 Model 有对应 Shared Types",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:prisma-coverage",
+      "步骤 2: 验证每个业务 Model 有对应的 IXxx/IXxxResponse 类型",
+      "步骤 3: 验证 Shared Types 与 Prisma Model 字段一致"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "@ts-expect-error 必须附带原因",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:ts-expect-error",
+      "步骤 2: 验证所有 @ts-expect-error 注释包含原因说明",
+      "步骤 3: 验证无 @ts-ignore"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Service 原生 SQL 注释规范",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:service-raw-sql",
+      "步骤 2: 验证 $queryRaw 使用处有 @prisma-raw-sql 注释",
+      "步骤 3: 验证 $queryRawUnsafe 使用处有 @prisma-raw-sql-unsafe 注释"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Optional 一致性 - shared schema vs interface",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:optional",
+      "步骤 2: 验证 shared schema 可选性与 interface 一致",
+      "步骤 3: 验证 .optional().nullable() 正确使用"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM联系人 - 决策人标记功能",
+    "steps": [
+      "步骤 1: 创建一个联系人并设置为决策人",
+      "步骤 2: 验证列表中显示决策人标记",
+      "步骤 3: 编辑取消决策人标记",
+      "步骤 4: 验证标记已移除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM合同订单 - 订单状态管理",
+    "steps": [
+      "步骤 1: 创建订单，验证初始状态",
+      "步骤 2: 修改订单状态",
+      "步骤 3: 验证状态更新",
+      "步骤 4: 验证状态徽章颜色正确"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM回款 - 选择器关联订单和客户",
+    "steps": [
+      "步骤 1: 在回款表单中点击订单选择器",
+      "步骤 2: 验证可搜索订单",
+      "步骤 3: 选择订单后验证客户自动关联",
+      "步骤 4: 验证金额字段可正确输入"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM开票 - 发票类型和状态管理",
+    "steps": [
+      "步骤 1: 创建不同类型的发票（增值税专票/普票）",
+      "步骤 2: 验证类型标签正确显示",
+      "步骤 3: 修改发票状态",
+      "步骤 4: 验证状态徽章更新"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "员工管理 - 钉钉用户关联",
+    "steps": [
+      "步骤 1: 查看员工详情",
+      "步骤 2: 验证钉钉 userId 字段显示",
+      "步骤 3: 验证工号字段显示",
+      "步骤 4: 验证工作地点字段显示"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批待办计数 - API 返回待办数量",
+    "steps": [
+      "步骤 1: 调用 GET /api/v1/approvals/pending/count",
+      "步骤 2: 验证返回待审批数量",
+      "步骤 3: 审批一条后再次获取数量",
+      "步骤 4: 验证数量减少"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "工作项 - 项目选择器和工作项选择器联动",
+    "steps": [
+      "步骤 1: 在工时记录表单中选择项目",
+      "步骤 2: 点击工作项选择器",
+      "步骤 3: 验证只显示该项目的工作项",
+      "步骤 4: 选择工作项并验证回填"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "批量删除确认 - 显示选中数量和确认",
+    "steps": [
+      "步骤 1: 在任意列表页勾选 3 条记录",
+      "步骤 2: 点击批量删除",
+      "步骤 3: 验证确认对话框显示选中数量",
+      "步骤 4: 确认后验证 3 条记录都被软删除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "表单对话框 - 新建和编辑模式切换",
+    "steps": [
+      "步骤 1: 点击新建按钮，验证表单为空白",
+      "步骤 2: 关闭对话框",
+      "步骤 3: 点击编辑按钮，验证表单预填充数据",
+      "步骤 4: 验证对话框标题正确区分新建/编辑"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "状态徽章 - 不同状态显示不同颜色",
+    "steps": [
+      "步骤 1: 在客户列表验证不同联系状态的颜色",
+      "步骤 2: 在商机列表验证不同阶段的颜色",
+      "步骤 3: 在审批列表验证不同审批状态的颜色",
+      "步骤 4: 验证颜色编码一致且清晰可辨"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "串号生成 - 自动生成业务编号",
+    "steps": [
+      "步骤 1: 创建新客户，验证自动生成 serialNumber",
+      "步骤 2: 创建新订单，验证自动生成 serialNumber",
+      "步骤 3: 创建新商机，验证自动生成 serialNumber",
+      "步骤 4: 验证编号格式正确且递增"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 区域地址完整性",
+    "steps": [
+      "步骤 1: 创建客户并填写省市区+详细地址",
+      "步骤 2: 验证地址保存正确",
+      "步骤 3: 编辑客户查看地址回填",
+      "步骤 4: 验证地址选择器三级联动正确"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 客户等级和来源字段",
+    "steps": [
+      "步骤 1: 创建不同等级的客户",
+      "步骤 2: 验证等级标签显示正确",
+      "步骤 3: 按客户来源筛选",
+      "步骤 4: 验证筛选结果"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM商机 - 产品明细行增删",
+    "steps": [
+      "步骤 1: 编辑一个商机",
+      "步骤 2: 添加新的产品明细行",
+      "步骤 3: 删除已有明细行",
+      "步骤 4: 验证总金额重新计算",
+      "步骤 5: 保存验证持久化"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM商机 - 赢率和阶段关联",
+    "steps": [
+      "步骤 1: 创建商机，设置初始阶段",
+      "步骤 2: 修改阶段",
+      "步骤 3: 验证赢率字段可编辑",
+      "步骤 4: 设置预计成交日和实际成交日"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM合同订单 - 关联商机选择器",
+    "steps": [
+      "步骤 1: 创建订单时点击商机选择器",
+      "步骤 2: 搜索并选择一个商机",
+      "步骤 3: 验证客户自动关联",
+      "步骤 4: 验证选择器搜索功能正常"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "操作列 - 编辑/删除/查看操作按钮",
+    "steps": [
+      "步骤 1: 在任意 CRUD 列表页面查看操作列",
+      "步骤 2: 验证显示操作下拉菜单",
+      "步骤 3: 点击编辑验证打开编辑表单",
+      "步骤 4: 点击删除验证弹出确认对话框",
+      "步骤 5: 验证操作按钮权限控制"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "网络错误处理 - API 请求失败时显示错误提示",
+    "steps": [
+      "步骤 1: 模拟一次 API 请求失败",
+      "步骤 2: 验证显示网络错误提示",
+      "步骤 3: 验证错误不会导致页面崩溃",
+      "步骤 4: 验证可以重试操作"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Rate Limiting - API 限流处理",
+    "steps": [
+      "步骤 1: 导航至 /rate-limit-test 页面",
+      "步骤 2: 快速发送大量请求",
+      "步骤 3: 验证触发 429 限流响应",
+      "步骤 4: 验证前端显示限流提示"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Session 管理 - 查看活跃会话",
+    "steps": [
+      "步骤 1: 在系统管理中查看会话列表",
+      "步骤 2: 验证显示当前登录的会话",
+      "步骤 3: 验证显示设备类型、浏览器、IP 等信息"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批流程 - 抄送人设置",
+    "steps": [
+      "步骤 1: 编辑审批流程，设置抄送人",
+      "步骤 2: 提交审批实例",
+      "步骤 3: 验证抄送人可以在抄送列表中看到",
+      "步骤 4: 验证抄送人无审批操作权限"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "审批节点 - 多人会签/或签",
+    "steps": [
+      "步骤 1: 创建包含多人审批节点的流程",
+      "步骤 2: 设置会签（所有人通过才通过）",
+      "步骤 3: 提交审批实例",
+      "步骤 4: 验证多个审批人都有待办",
+      "步骤 5: 验证所有人审批通过后节点才通过"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM跟进记录 - 签到地址定位",
+    "steps": [
+      "步骤 1: 创建跟进记录时点击签到",
+      "步骤 2: 验证调用地理位置 API",
+      "步骤 3: 验证签到地址自动填充",
+      "步骤 4: 验证地址信息保存到记录"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 标签字段管理",
+    "steps": [
+      "步骤 1: 创建客户时添加多个标签",
+      "步骤 2: 验证标签保存（JSON 字段）",
+      "步骤 3: 编辑客户修改标签",
+      "步骤 4: 验证 json-type-helpers 正确处理"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM客户 - 负责人选择和显示",
+    "steps": [
+      "步骤 1: 创建客户时选择负责人（员工选择器）",
+      "步骤 2: 验证 chargerId 保存为钉钉 userId",
+      "步骤 3: 验证 chargerName 显示正确姓名",
+      "步骤 4: 验证列表中负责人列正确显示"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "CRM合同订单 - 金额汇总计算",
+    "steps": [
+      "步骤 1: 创建订单包含多个产品明细行",
+      "步骤 2: 验证 productAmount（产品总额）自动计算",
+      "步骤 3: 验证 orderAmount（订单金额）正确",
+      "步骤 4: 验证 Decimal 精度在全链路保持"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "项目成员 - API 增删成员",
+    "steps": [
+      "步骤 1: POST /api/v1/projects/:id/members 添加成员",
+      "步骤 2: 验证返回 201 成功",
+      "步骤 3: GET /api/v1/projects/:id/members 验证成员列表",
+      "步骤 4: DELETE /api/v1/projects/:id/members/:memberId",
+      "步骤 5: 验证成员已移除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "工作项 - 标签字段（JSON 数组）",
+    "steps": [
+      "步骤 1: 创建工作项时添加标签",
+      "步骤 2: 验证标签保存为 JSON 数组",
+      "步骤 3: 编辑修改标签",
+      "步骤 4: 验证使用 json-type-helpers"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "API CORS 配置验证",
+    "steps": [
+      "步骤 1: 从前端域名发起请求",
+      "步骤 2: 验证 CORS 头允许该 origin",
+      "步骤 3: 验证非白名单域名被拒绝"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "后端 JwtAuthGuard 全覆盖",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:jwt-guard",
+      "步骤 2: 验证所有业务 Controller 有 @UseGuards(JwtAuthGuard)",
+      "步骤 3: 验证公开接口有 @Public() 装饰器"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "侧边栏导航 - 所有菜单可点击和导航",
+    "steps": [
+      "步骤 1: 展开侧边栏所有菜单组",
+      "步骤 2: 逐个点击菜单项",
+      "步骤 3: 验证每个菜单项正确导航到对应页面",
+      "步骤 4: 验证当前激活菜单高亮",
+      "步骤 5: 验证可折叠/展开菜单组",
+      "步骤 6: 验证侧边栏可折叠",
+      "步骤 7: 验证折叠后只显示图标"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "侧边栏 - 角色权限过滤菜单",
+    "steps": [
+      "步骤 1: 以管理员登录，验证看到所有菜单",
+      "步骤 2: 以普通用户登录",
+      "步骤 3: 验证系统管理菜单不可见",
+      "步骤 4: 验证只显示有权限的菜单"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "前端错误边界 - 组件崩溃不影响整体应用",
+    "steps": [
+      "步骤 1: 导航至各主要页面",
+      "步骤 2: 验证无 JS 运行时错误（控制台无未捕获异常）",
+      "步骤 3: 验证页面可正常交互"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "前端加载状态 - 数据加载时显示骨架/Loading",
+    "steps": [
+      "步骤 1: 导航至 CRUD 列表页面",
+      "步骤 2: 验证数据加载过程中显示 Loading 状态",
+      "步骤 3: 验证数据加载完成后 Loading 消失"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "前端空状态 - 无数据时显示空状态提示",
+    "steps": [
+      "步骤 1: 导航至无数据的列表页面",
+      "步骤 2: 验证显示空状态提示（如 '暂无数据'）",
+      "步骤 3: 验证新建按钮仍然可用"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Toast 通知 - 操作成功/失败提示",
+    "steps": [
+      "步骤 1: 创建一条记录，验证成功 Toast",
+      "步骤 2: 故意提交无效数据，验证失败 Toast",
+      "步骤 3: 删除一条记录，验证删除成功 Toast",
+      "步骤 4: 验证 Toast 自动消失"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "巡店标准表 - 列表和详情页",
+    "steps": [
+      "步骤 1: 导航至 /store-inspection-standards",
+      "步骤 2: 验证标准表列表正常加载",
+      "步骤 3: 点击某行进入详情页",
+      "步骤 4: 验证显示基本信息卡片",
+      "步骤 5: 验证显示打分标准表格",
+      "步骤 6: 验证总分合计自动计算",
+      "步骤 7: 验证编辑和删除按钮可用",
+      "步骤 8: 验证返回按钮回到列表"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "巡店标准表 - CRUD 操作",
+    "steps": [
+      "步骤 1: 创建新标准表（名称、描述、检查项）",
+      "步骤 2: 验证创建成功",
+      "步骤 3: 编辑标准表",
+      "步骤 4: 删除标准表",
+      "步骤 5: 验证软删除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Docker Compose 服务启动",
+    "steps": [
+      "步骤 1: 运行 docker compose up -d",
+      "步骤 2: 验证 PostgreSQL 服务正常启动",
+      "步骤 3: 验证 Redis 服务正常启动",
+      "步骤 4: 验证 MinIO 服务正常启动",
+      "步骤 5: 验证各服务端口可访问"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "后端服务启动和健康检查",
+    "steps": [
+      "步骤 1: 运行 pnpm dev:server",
+      "步骤 2: 等待后端服务启动完成",
+      "步骤 3: 调用 GET /api/v1/health",
+      "步骤 4: 验证返回 200 OK",
+      "步骤 5: 验证数据库连接正常"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "前端开发服务启动",
+    "steps": [
+      "步骤 1: 运行 pnpm dev:web",
+      "步骤 2: 等待 Vite 开发服务器启动",
+      "步骤 3: 访问 http://localhost:5173",
+      "步骤 4: 验证页面正常渲染"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Vite 代理配置 - 前端请求正确转发到后端",
+    "steps": [
+      "步骤 1: 从前端页面发起 API 请求",
+      "步骤 2: 验证请求被 Vite 代理到 localhost:3000",
+      "步骤 3: 验证 API 响应正确返回"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Turbo 构建缓存验证",
+    "steps": [
+      "步骤 1: 首次运行 pnpm build",
+      "步骤 2: 记录构建时间",
+      "步骤 3: 不修改代码再次运行 pnpm build",
+      "步骤 4: 验证 Turbo 使用缓存，构建时间显著缩短"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "Pre-commit hooks - 提交前自动检查",
+    "steps": [
+      "步骤 1: 检查 .husky/pre-commit 文件存在",
+      "步骤 2: 修改一个文件并 git add",
+      "步骤 3: 运行 git commit",
+      "步骤 4: 验证 lint-staged 和 check 脚本执行"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "登录页面 - UI 布局和设计",
+    "steps": [
+      "步骤 1: 导航至 /login",
+      "步骤 2: 截取页面截图",
+      "步骤 3: 验证表单居中显示",
+      "步骤 4: 验证有品牌标题或 Logo",
+      "步骤 5: 验证输入框样式（shadcn/ui 风格）",
+      "步骤 6: 验证登录按钮样式突出"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "桌面端侧边栏 - 设计和交互",
+    "steps": [
+      "步骤 1: 登录后截取主界面截图",
+      "步骤 2: 验证侧边栏在左侧固定",
+      "步骤 3: 验证菜单分组标题清晰",
+      "步骤 4: 验证菜单图标和文字对齐",
+      "步骤 5: 验证激活菜单项有视觉区分",
+      "步骤 6: 验证侧边栏可折叠/展开"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "CRUD 列表页面 - 表格布局",
+    "steps": [
+      "步骤 1: 导航至 /crm/customers 截取截图",
+      "步骤 2: 验证工具栏布局合理（搜索框、按钮、筛选器）",
+      "步骤 3: 验证表格列宽合理",
+      "步骤 4: 验证分页控件位置正确",
+      "步骤 5: 验证表格行间距和对齐",
+      "步骤 6: 验证操作列紧凑但可点击"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "表单对话框 - 弹窗设计",
+    "steps": [
+      "步骤 1: 打开一个 CRUD 表单对话框",
+      "步骤 2: 截取弹窗截图",
+      "步骤 3: 验证弹窗居中且有遮罩层",
+      "步骤 4: 验证表单字段标签和输入框对齐",
+      "步骤 5: 验证必填字段有标记",
+      "步骤 6: 验证确认/取消按钮布局合理"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "表单验证错误 - 错误提示样式",
+    "steps": [
+      "步骤 1: 触发表单验证错误",
+      "步骤 2: 截取截图",
+      "步骤 3: 验证错误信息为红色文字",
+      "步骤 4: 验证错误字段有红色边框",
+      "步骤 5: 验证错误信息位于对应字段下方"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "仪表盘 - 统计卡片和布局",
+    "steps": [
+      "步骤 1: 导航至首页截取截图",
+      "步骤 2: 验证统计卡片以网格布局排列",
+      "步骤 3: 验证卡片有图标、数值、标签",
+      "步骤 4: 验证整体间距和色彩协调"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "状态徽章 - 颜色编码和一致性",
+    "steps": [
+      "步骤 1: 截取包含不同状态的列表截图",
+      "步骤 2: 验证状态徽章有清晰的颜色区分",
+      "步骤 3: 验证成功/进行中/待处理/失败等状态颜色一致",
+      "步骤 4: 验证徽章圆角和内边距统一"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "移动端响应式 - 列表页面适配",
+    "steps": [
+      "步骤 1: 将浏览器窗口调整为移动端宽度（<768px）",
+      "步骤 2: 截取客户列表页面截图",
+      "步骤 3: 验证侧边栏消失，底部导航显示",
+      "步骤 4: 验证表格转为卡片布局",
+      "步骤 5: 验证卡片信息完整且可读",
+      "步骤 6: 验证操作按钮仍可访问"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "移动端响应式 - 表单弹窗适配",
+    "steps": [
+      "步骤 1: 在移动端宽度下打开表单对话框",
+      "步骤 2: 截取截图",
+      "步骤 3: 验证对话框全宽显示",
+      "步骤 4: 验证表单字段垂直排列",
+      "步骤 5: 验证可滚动查看所有字段"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "移动端底部导航 - 设计和交互",
+    "steps": [
+      "步骤 1: 在移动端视图截取截图",
+      "步骤 2: 验证底部导航栏固定在底部",
+      "步骤 3: 验证导航图标清晰可辨",
+      "步骤 4: 验证当前页面对应图标高亮",
+      "步骤 5: 验证点击导航图标正确切换页面"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "移动端侧滑菜单 - 设计和动画",
+    "steps": [
+      "步骤 1: 在移动端视图点击菜单按钮",
+      "步骤 2: 验证侧滑菜单从左侧滑出",
+      "步骤 3: 验证有遮罩层",
+      "步骤 4: 验证菜单项可正常点击",
+      "步骤 5: 验证点击遮罩或关闭按钮收起菜单"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "深色模式 - 全局配色一致性",
+    "steps": [
+      "步骤 1: 切换到深色模式",
+      "步骤 2: 截取主要页面截图（首页、列表、表单）",
+      "步骤 3: 验证背景色为深色系",
+      "步骤 4: 验证文字为浅色可读",
+      "步骤 5: 验证表格、卡片、对话框颜色一致",
+      "步骤 6: 验证无白色闪烁区域"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "深色模式 - 表单控件适配",
+    "steps": [
+      "步骤 1: 在深色模式下打开表单",
+      "步骤 2: 验证输入框背景适配深色",
+      "步骤 3: 验证下拉选择器适配",
+      "步骤 4: 验证日期选择器适配",
+      "步骤 5: 验证按钮颜色适配"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "页面顶部导航栏 - 设计",
+    "steps": [
+      "步骤 1: 截取顶部导航栏截图",
+      "步骤 2: 验证显示当前页面标题/面包屑",
+      "步骤 3: 验证用户头像/菜单在右侧",
+      "步骤 4: 验证通知图标可见",
+      "步骤 5: 验证主题切换按钮可见"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "删除确认对话框 - 警告设计",
+    "steps": [
+      "步骤 1: 触发删除操作截取确认对话框截图",
+      "步骤 2: 验证有醒目的警告图标/颜色",
+      "步骤 3: 验证提示文字清晰说明后果",
+      "步骤 4: 验证确认按钮为红色/危险色",
+      "步骤 5: 验证取消按钮在安全位置"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "审批详情 - 时间线设计",
+    "steps": [
+      "步骤 1: 打开审批详情截取截图",
+      "步骤 2: 验证时间线垂直排列",
+      "步骤 3: 验证各节点有状态图标（通过/驳回/待审批）",
+      "步骤 4: 验证审批人和时间信息清晰",
+      "步骤 5: 验证审批意见可读"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "审批流程设计器 - 节点可视化",
+    "steps": [
+      "步骤 1: 导航至审批流程设计页面截图",
+      "步骤 2: 验证节点以可视化方式排列",
+      "步骤 3: 验证节点间有连接线",
+      "步骤 4: 验证节点可点击编辑",
+      "步骤 5: 验证整体布局清晰可理解"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "部门管理 - 树形结构视觉效果",
+    "steps": [
+      "步骤 1: 导航至部门管理页面截取截图",
+      "步骤 2: 验证树形结构缩进正确",
+      "步骤 3: 验证展开/折叠图标清晰",
+      "步骤 4: 验证层级关系一目了然"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "命令面板 - 搜索弹窗设计",
+    "steps": [
+      "步骤 1: 打开命令面板（Ctrl+K）截取截图",
+      "步骤 2: 验证弹窗居中显示",
+      "步骤 3: 验证搜索框醒目",
+      "步骤 4: 验证搜索结果列表清晰",
+      "步骤 5: 验证高亮匹配文字"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "通知中心 - 通知面板设计",
+    "steps": [
+      "步骤 1: 点击通知图标截取截图",
+      "步骤 2: 验证通知面板从右侧滑出",
+      "步骤 3: 验证已读/未读视觉区分",
+      "步骤 4: 验证通知时间格式友好",
+      "步骤 5: 验证通知内容可读"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "403 禁止访问页面 - 设计",
+    "steps": [
+      "步骤 1: 访问 /403 截取截图",
+      "步骤 2: 验证有清晰的权限不足提示",
+      "步骤 3: 验证有返回首页/登录按钮"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "空状态设计 - 无数据时的展示",
+    "steps": [
+      "步骤 1: 导航至无数据的列表页面截取截图",
+      "步骤 2: 验证有空状态插图或图标",
+      "步骤 3: 验证有引导文字（如 '暂无数据，点击新建'）",
+      "步骤 4: 验证新建按钮可见"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Loading 加载动画 - 设计",
+    "steps": [
+      "步骤 1: 在数据加载时截取截图",
+      "步骤 2: 验证有加载动画或骨架屏",
+      "步骤 3: 验证加载动画不闪烁",
+      "步骤 4: 验证加载完成后平滑过渡"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Toast 通知 - 样式和位置",
+    "steps": [
+      "步骤 1: 触发成功 Toast 截取截图",
+      "步骤 2: 验证 Toast 在右上角或顶部中央",
+      "步骤 3: 验证成功为绿色/蓝色",
+      "步骤 4: 触发失败 Toast 验证为红色",
+      "步骤 5: 验证 Toast 有进入/退出动画"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "下拉选择器 - 设计和交互",
+    "steps": [
+      "步骤 1: 打开一个下拉选择器截取截图",
+      "步骤 2: 验证下拉列表位置正确（不超出视口）",
+      "步骤 3: 验证选项可以键盘导航",
+      "步骤 4: 验证搜索功能的输入框清晰",
+      "步骤 5: 验证选中项有勾选标记"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "日期选择器 - 设计",
+    "steps": [
+      "步骤 1: 打开日期选择器截取截图",
+      "步骤 2: 验证日历面板清晰",
+      "步骤 3: 验证今天日期有标记",
+      "步骤 4: 验证选中日期有高亮",
+      "步骤 5: 验证月份切换正常"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "表格排序指示器 - 设计",
+    "steps": [
+      "步骤 1: 点击表格列标题排序",
+      "步骤 2: 截取截图",
+      "步骤 3: 验证有升序/降序箭头指示器",
+      "步骤 4: 验证排序列标题视觉区分"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "分页控件 - 设计和布局",
+    "steps": [
+      "步骤 1: 截取包含分页控件的列表截图",
+      "步骤 2: 验证分页控件在表格下方",
+      "步骤 3: 验证显示总记录数",
+      "步骤 4: 验证页码按钮样式统一",
+      "步骤 5: 验证当前页有高亮",
+      "步骤 6: 验证每页条数选择器可用"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "UI Demo 页面 - 组件展示完整性",
+    "steps": [
+      "步骤 1: 导航至 /ui-demo 截取截图",
+      "步骤 2: 验证展示了主要 UI 组件",
+      "步骤 3: 验证组件样式正确",
+      "步骤 4: 验证可作为设计参考"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "响应式断点过渡 - 平滑切换",
+    "steps": [
+      "步骤 1: 从桌面宽度逐步缩小到移动端",
+      "步骤 2: 验证侧边栏平滑消失",
+      "步骤 3: 验证底部导航平滑出现",
+      "步骤 4: 验证表格到卡片布局平滑过渡",
+      "步骤 5: 验证无布局断裂或重叠"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "字体和排版 - 全局一致性",
+    "steps": [
+      "步骤 1: 截取多个页面截图对比",
+      "步骤 2: 验证标题字号层级（h1 > h2 > h3）",
+      "步骤 3: 验证正文字号统一",
+      "步骤 4: 验证行高和字间距舒适",
+      "步骤 5: 验证中文字体渲染清晰"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "间距和对齐 - 全局一致性",
+    "steps": [
+      "步骤 1: 截取多个页面截图对比",
+      "步骤 2: 验证页面边距一致（Tailwind 标准间距）",
+      "步骤 3: 验证组件间距统一",
+      "步骤 4: 验证卡片内边距一致",
+      "步骤 5: 验证无错位或不对齐元素"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "颜色主题 - shadcn/ui 设计系统一致性",
+    "steps": [
+      "步骤 1: 验证按钮颜色使用 shadcn/ui 变量",
+      "步骤 2: 验证表格使用 shadcn/ui 组件",
+      "步骤 3: 验证表单控件使用 shadcn/ui 组件",
+      "步骤 4: 验证无自定义/冲突的颜色"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "可访问性基础 - 对比度和焦点环",
+    "steps": [
+      "步骤 1: 使用 Tab 键导航页面",
+      "步骤 2: 验证焦点环可见",
+      "步骤 3: 验证文字与背景对比度足够",
+      "步骤 4: 验证按钮有 hover/active 状态"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "巡店标准表详情页 - 信息卡片和表格布局",
+    "steps": [
+      "步骤 1: 导航至巡店标准表详情页截取截图",
+      "步骤 2: 验证基本信息卡片布局合理",
+      "步骤 3: 验证打分标准表格格式清晰",
+      "步骤 4: 验证总分合计醒目显示",
+      "步骤 5: 验证操作按钮位置合理"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "移动端卡片布局 - 信息密度和可读性",
+    "steps": [
+      "步骤 1: 在移动端查看 CRM 客户列表（卡片模式）",
+      "步骤 2: 截取截图",
+      "步骤 3: 验证卡片显示关键信息（名称、状态、负责人）",
+      "步骤 4: 验证卡片间距合理",
+      "步骤 5: 验证操作按钮可触达",
+      "步骤 6: 验证文字不截断导致信息丢失"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "CRM 各模块列表页面视觉一致性",
+    "steps": [
+      "步骤 1: 截取客户、联系人、商机、订单列表页面截图",
+      "步骤 2: 验证工具栏位置和按钮排列一致",
+      "步骤 3: 验证表格列标题样式一致",
+      "步骤 4: 验证分页控件样式一致",
+      "步骤 5: 验证操作列按钮样式一致"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "回收站页面 - 设计",
+    "steps": [
+      "步骤 1: 导航至 /trash 截取截图",
+      "步骤 2: 验证已删除数据分模块展示",
+      "步骤 3: 验证恢复按钮清晰可见",
+      "步骤 4: 验证删除时间格式友好"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "操作日志/登录日志 - 表格设计",
+    "steps": [
+      "步骤 1: 截取操作日志页面截图",
+      "步骤 2: 验证日志表格清晰可读",
+      "步骤 3: 验证时间戳格式化显示",
+      "步骤 4: 验证操作类型有颜色编码"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "角色权限配置 - 权限矩阵设计",
+    "steps": [
+      "步骤 1: 截取角色权限配置截图",
+      "步骤 2: 验证权限矩阵清晰（模块×操作）",
+      "步骤 3: 验证复选框对齐",
+      "步骤 4: 验证模块分组清晰"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "文件上传组件 - 设计",
+    "steps": [
+      "步骤 1: 截取文件上传区域截图",
+      "步骤 2: 验证有拖放区域提示",
+      "步骤 3: 验证已上传文件列表显示文件名和大小",
+      "步骤 4: 验证删除按钮可见",
+      "步骤 5: 验证上传进度条样式"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "地址选择器 - 三级联动设计",
+    "steps": [
+      "步骤 1: 截取地址选择器组件截图",
+      "步骤 2: 验证省/市/区三个选择器排列合理",
+      "步骤 3: 验证级联更新流畅",
+      "步骤 4: 验证选项列表可搜索"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "Profile 个人设置页面 - 布局",
+    "steps": [
+      "步骤 1: 导航至 /profile 截取截图",
+      "步骤 2: 验证个人信息卡片布局",
+      "步骤 3: 验证修改密码区域设计",
+      "步骤 4: 验证头像显示"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "工具栏按钮组 - 一致性",
+    "steps": [
+      "步骤 1: 截取多个页面的工具栏截图",
+      "步骤 2: 验证新建按钮为主色调",
+      "步骤 3: 验证搜索框样式一致",
+      "步骤 4: 验证筛选器和导出按钮样式统一",
+      "步骤 5: 验证按钮间距合理"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "移动端表单页面 - 触控友好",
+    "steps": [
+      "步骤 1: 在移动端打开表单截取截图",
+      "步骤 2: 验证输入框高度适合触控（≥44px）",
+      "步骤 3: 验证按钮大小适合触控",
+      "步骤 4: 验证表单字段垂直间距足够",
+      "步骤 5: 验证键盘弹出不遮挡输入框"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "数据导入导出工具栏 - 设计",
+    "steps": [
+      "步骤 1: 截取包含导入导出的工具栏截图",
+      "步骤 2: 验证导入/导出按钮图标清晰",
+      "步骤 3: 验证按钮不与其他工具栏元素冲突"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - CRM 销售全流程（客户→联系人→商机→订单→回款→开票）",
+    "steps": [
+      "步骤 1: 登录系统",
+      "步骤 2: 创建新客户（填写名称、行业、等级、地址）",
+      "步骤 3: 为该客户创建联系人（姓名、手机、邮箱、设为决策人）",
+      "步骤 4: 创建商机关联该客户和联系人，设置阶段和金额",
+      "步骤 5: 为商机添加产品明细行（产品名、数量、单价）",
+      "步骤 6: 验证商机金额自动计算正确",
+      "步骤 7: 创建合同订单关联该商机，添加产品明细行",
+      "步骤 8: 验证订单金额和应收金额正确",
+      "步骤 9: 为该订单创建回款记录（金额、支付类型）",
+      "步骤 10: 为该订单创建发票记录（金额、发票类型、税号）",
+      "步骤 11: 返回客户列表验证客户数据更新",
+      "步骤 12: 验证全流程数据关联一致"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 审批完整闭环（设计→激活→提交→审批→完成）",
+    "steps": [
+      "步骤 1: 以管理员登录",
+      "步骤 2: 创建新审批流程（选择事件类型）",
+      "步骤 3: 进入流程设计页面添加第一个审批节点",
+      "步骤 4: 添加第二个审批节点",
+      "步骤 5: 保存流程设计",
+      "步骤 6: 激活审批流程",
+      "步骤 7: 提交一个审批实例",
+      "步骤 8: 验证待办列表出现新审批",
+      "步骤 9: 以第一个审批人审批通过（填写意见）",
+      "步骤 10: 以第二个审批人审批通过",
+      "步骤 11: 验证审批实例状态变为已通过",
+      "步骤 12: 查看审批详情验证时间线完整"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 项目管理全流程（项目→成员→工作项→工时）",
+    "steps": [
+      "步骤 1: 登录系统",
+      "步骤 2: 创建新项目（名称、描述）",
+      "步骤 3: 为项目添加 2-3 个成员",
+      "步骤 4: 验证成员列表正确",
+      "步骤 5: 创建一个任务类型的工作项",
+      "步骤 6: 创建一个缺陷类型的工作项",
+      "步骤 7: 分配工作项给不同成员",
+      "步骤 8: 修改工作项状态为进行中",
+      "步骤 9: 为工作项创建工时记录",
+      "步骤 10: 验证工时记录关联正确",
+      "步骤 11: 完成工作项（状态改为已完成，进度 100%）",
+      "步骤 12: 验证项目整体数据一致"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 组织架构管理全流程（部门→员工→用户→角色）",
+    "steps": [
+      "步骤 1: 以管理员登录",
+      "步骤 2: 创建父部门",
+      "步骤 3: 在父部门下创建子部门",
+      "步骤 4: 验证部门树形结构正确",
+      "步骤 5: 创建新员工",
+      "步骤 6: 将员工分配到部门",
+      "步骤 7: 设置部门经理",
+      "步骤 8: 创建用户关联该员工",
+      "步骤 9: 创建新角色并配置权限",
+      "步骤 10: 将角色分配给用户",
+      "步骤 11: 以新用户登录验证权限生效",
+      "步骤 12: 验证菜单显示与权限一致"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 客户跟进和拜访签到全流程",
+    "steps": [
+      "步骤 1: 登录并导航至客户列表",
+      "步骤 2: 选择一个客户",
+      "步骤 3: 创建跟进记录（选择类型、填写内容）",
+      "步骤 4: 上传附件到跟进记录",
+      "步骤 5: 验证跟进记录创建成功",
+      "步骤 6: 创建拜访签到记录",
+      "步骤 7: 设置签到地址和内容",
+      "步骤 8: 记录签退时间",
+      "步骤 9: 验证拜访时长计算",
+      "步骤 10: 导航至跟进记录列表按客户筛选",
+      "步骤 11: 验证该客户的所有跟进记录显示",
+      "步骤 12: 导航至拜访列表验证签到记录"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - CRUD 页面标准化验证（以客户为例完整检查）",
+    "steps": [
+      "步骤 1: 导航至 /crm/customers",
+      "步骤 2: 验证 StandardToolbar 渲染（新建、搜索、筛选按钮）",
+      "步骤 3: 验证 CrudTable 渲染（列标题、数据行、分页）",
+      "步骤 4: 点击新建验证 FormDialog 弹出",
+      "步骤 5: 提交空表单验证 Zod 校验错误（CrudFormField error 显示）",
+      "步骤 6: 填写有效数据提交验证成功",
+      "步骤 7: 搜索刚创建的记录",
+      "步骤 8: 点击编辑验证数据预填充",
+      "步骤 9: 修改并保存验证乐观锁 version 递增",
+      "步骤 10: 勾选记录验证行选择功能",
+      "步骤 11: 验证列可见性切换",
+      "步骤 12: 删除记录验证确认对话框和软删除"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 登录→导航所有 CRM 页面→验证数据加载",
+    "steps": [
+      "步骤 1: 使用有效凭据登录",
+      "步骤 2: 导航至 /crm/customers 验证列表加载",
+      "步骤 3: 导航至 /crm/contacts 验证列表加载",
+      "步骤 4: 导航至 /crm/opportunities 验证列表加载",
+      "步骤 5: 导航至 /crm/sale-orders 验证列表加载",
+      "步骤 6: 导航至 /crm/payments 验证列表加载",
+      "步骤 7: 导航至 /crm/invoices 验证列表加载",
+      "步骤 8: 导航至 /crm/keep-records 验证列表加载",
+      "步骤 9: 导航至 /crm/visit-records 验证列表加载",
+      "步骤 10: 导航至 /crm/products 验证列表加载",
+      "步骤 11: 验证所有页面无 JS 错误",
+      "步骤 12: 验证所有页面工具栏和表格正常渲染"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 登录→导航所有非 CRM 页面→验证数据加载",
+    "steps": [
+      "步骤 1: 以管理员登录",
+      "步骤 2: 导航至 /projects 验证加载",
+      "步骤 3: 导航至 /projects/work-items 验证加载",
+      "步骤 4: 导航至 /projects/effort-records 验证加载",
+      "步骤 5: 导航至 /reports/work-dailies 验证加载",
+      "步骤 6: 导航至 /reports/dingtalk-logs 验证加载",
+      "步骤 7: 导航至 /organization/employees 验证加载",
+      "步骤 8: 导航至 /organization/departments 验证加载",
+      "步骤 9: 导航至 /system/users 验证加载",
+      "步骤 10: 导航至 /system/roles 验证加载",
+      "步骤 11: 导航至 /system/logs 验证加载",
+      "步骤 12: 验证所有页面无 JS 错误"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 数据软删除→回收站恢复完整流程",
+    "steps": [
+      "步骤 1: 创建一条测试客户",
+      "步骤 2: 记录客户 ID 和名称",
+      "步骤 3: 删除该客户",
+      "步骤 4: 验证客户列表中已消失",
+      "步骤 5: 导航至 /trash 回收站",
+      "步骤 6: 验证已删除客户出现在回收站",
+      "步骤 7: 点击恢复按钮",
+      "步骤 8: 验证客户从回收站消失",
+      "步骤 9: 返回客户列表",
+      "步骤 10: 验证客户重新出现",
+      "步骤 11: 验证客户数据完整（名称、字段值不变）"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 表单选择器联动验证（订单表单全链路）",
+    "steps": [
+      "步骤 1: 导航至 /crm/sale-orders 点击新建",
+      "步骤 2: 点击客户选择器搜索并选择客户",
+      "步骤 3: 点击商机选择器验证只显示该客户的商机",
+      "步骤 4: 选择商机验证关联信息自动填充",
+      "步骤 5: 添加第一个产品明细行（填写产品名、数量、单价）",
+      "步骤 6: 添加第二个产品明细行",
+      "步骤 7: 验证折扣计算正确",
+      "步骤 8: 验证小计金额正确（Decimal 精度）",
+      "步骤 9: 验证总金额汇总正确",
+      "步骤 10: 设置负责人（员工选择器）",
+      "步骤 11: 设置订单日期和状态",
+      "步骤 12: 提交并验证所有字段正确保存"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 审批流程驳回→撤回→重新提交",
+    "steps": [
+      "步骤 1: 确保存在已激活的审批流程",
+      "步骤 2: 提交审批实例",
+      "步骤 3: 验证审批实例状态为待审批",
+      "步骤 4: 以审批人驳回审批（填写驳回原因）",
+      "步骤 5: 验证状态变为已驳回",
+      "步骤 6: 验证发起人可以看到驳回原因",
+      "步骤 7: 提交新的审批实例",
+      "步骤 8: 在审批人处理前，发起人撤回",
+      "步骤 9: 验证状态变为已撤回",
+      "步骤 10: 验证审批人待办列表中该实例消失",
+      "步骤 11: 重新提交审批",
+      "步骤 12: 审批通过验证最终状态"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - RBAC 权限控制完整验证",
+    "steps": [
+      "步骤 1: 以管理员登录创建新角色",
+      "步骤 2: 配置角色仅有 CRM 客户的 view/create 权限",
+      "步骤 3: 创建新用户分配该角色",
+      "步骤 4: 以新用户登录",
+      "步骤 5: 验证侧边栏只显示 CRM 客户菜单",
+      "步骤 6: 验证可以查看客户列表",
+      "步骤 7: 验证可以创建客户",
+      "步骤 8: 验证编辑/删除按钮不可见或不可用",
+      "步骤 9: 直接访问 /system/users 验证被拒绝",
+      "步骤 10: 直接调用 DELETE API 验证返回 403",
+      "步骤 11: 以管理员重新修改角色添加 edit 权限",
+      "步骤 12: 以该用户重新登录验证编辑功能可用"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - Decimal 精度全链路验证（商机→订单→回款→开票）",
+    "steps": [
+      "步骤 1: 创建商机金额 999999.99",
+      "步骤 2: 验证 API 请求中金额为 String 类型",
+      "步骤 3: 验证 API 响应中金额正确",
+      "步骤 4: 验证列表显示金额精度正确",
+      "步骤 5: 创建订单包含多个明细行（单价 123.45 × 数量 7）",
+      "步骤 6: 验证小计 864.15 精确计算（非 864.149999...）",
+      "步骤 7: 创建回款金额 500.50",
+      "步骤 8: 验证回款金额 API 传输精度",
+      "步骤 9: 创建发票金额 363.65",
+      "步骤 10: 验证所有金额在数据库中精确存储",
+      "步骤 11: 验证编辑后金额精度仍保持",
+      "步骤 12: 验证列表中排序按 Decimal 正确排序"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 多模块乐观锁并发测试",
+    "steps": [
+      "步骤 1: GET 客户数据获取 version 值",
+      "步骤 2: PUT 更新客户（正确 version）验证成功",
+      "步骤 3: 验证返回的 version 递增",
+      "步骤 4: 用旧 version 再次 PUT 验证 409 Conflict",
+      "步骤 5: GET 商机数据获取 version",
+      "步骤 6: PUT 更新商机（正确 version）验证成功",
+      "步骤 7: 用旧 version 再次 PUT 验证 409",
+      "步骤 8: GET 员工数据获取 version",
+      "步骤 9: PUT 更新员工（正确 version）验证成功",
+      "步骤 10: 用旧 version 再次 PUT 验证 409",
+      "步骤 11: 验证前端收到 409 后显示冲突提示"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 选择器组件全面测试（6 种选择器）",
+    "steps": [
+      "步骤 1: 在联系人表单中测试客户选择器（搜索、选择、回填）",
+      "步骤 2: 在商机表单中测试联系人选择器（搜索、选择、回填）",
+      "步骤 3: 在订单表单中测试商机选择器（搜索、选择、回填）",
+      "步骤 4: 在客户表单中测试员工选择器（搜索负责人）",
+      "步骤 5: 在员工表单中测试部门选择器（树形结构选择）",
+      "步骤 6: 在工时记录表单中测试工作项选择器",
+      "步骤 7: 验证所有选择器支持关键字搜索",
+      "步骤 8: 验证选择后值正确回填",
+      "步骤 9: 验证选择器使用 selectionPaginationSchema",
+      "步骤 10: 验证大量数据时不卡顿",
+      "步骤 11: 验证清空选择器值的功能"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 工作汇报模块完整验证",
+    "steps": [
+      "步骤 1: 导航至 /reports/work-dailies 验证日报列表",
+      "步骤 2: 创建 CRM 日报（日期、类型、拜访客户汇总）",
+      "步骤 3: 验证日报创建成功",
+      "步骤 4: 导航至 /reports/dingtalk-logs 验证钉钉日志列表",
+      "步骤 5: 搜索日志验证过滤功能",
+      "步骤 6: 导航至 /reports/calendar-events 验证日程列表",
+      "步骤 7: 验证日程事件详情可查看",
+      "步骤 8: 导航至 /reports/employee-leaves 验证离职记录",
+      "步骤 9: 验证所有报告页面为只读模式",
+      "步骤 10: 验证分页和搜索功能统一",
+      "步骤 11: 验证日期范围筛选正常"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 系统管理全面验证",
+    "steps": [
+      "步骤 1: 以管理员登录",
+      "步骤 2: 导航至 /system/users 验证用户列表",
+      "步骤 3: 导航至 /system/roles 验证角色列表",
+      "步骤 4: 导航至 /system/params 验证系统参数",
+      "步骤 5: 导航至 /system/logs 验证操作日志",
+      "步骤 6: 导航至登录日志页面验证",
+      "步骤 7: 查看通知中心",
+      "步骤 8: 验证操作日志记录了本次登录",
+      "步骤 9: 修改系统参数验证操作日志新增记录",
+      "步骤 10: 验证所有系统管理页面仅管理员可访问",
+      "步骤 11: 以非管理员访问验证被拒绝"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 移动端 CRM 操作全流程",
+    "steps": [
+      "步骤 1: 设置浏览器为移动端视口（375px 宽）",
+      "步骤 2: 登录系统",
+      "步骤 3: 验证底部导航显示",
+      "步骤 4: 导航至客户列表验证卡片布局",
+      "步骤 5: 点击新建验证表单弹窗全宽显示",
+      "步骤 6: 填写表单并提交",
+      "步骤 7: 验证创建成功 Toast 显示",
+      "步骤 8: 搜索刚创建的客户",
+      "步骤 9: 点击卡片查看详情",
+      "步骤 10: 编辑客户验证表单数据预填充",
+      "步骤 11: 保存验证成功",
+      "步骤 12: 删除验证确认对话框适配移动端"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 认证全生命周期测试",
+    "steps": [
+      "步骤 1: 访问 /login 验证页面渲染",
+      "步骤 2: 输入无效凭据验证错误提示",
+      "步骤 3: 输入有效凭据登录成功",
+      "步骤 4: 验证 accessToken 存储",
+      "步骤 5: 执行需认证的 API 调用验证 Token 有效",
+      "步骤 6: 调用 refresh 接口获取新 Token",
+      "步骤 7: 修改密码",
+      "步骤 8: 登出验证 Token 清除",
+      "步骤 9: 验证访问受保护页面被重定向",
+      "步骤 10: 用新密码重新登录验证",
+      "步骤 11: 验证 Session 记录在系统中"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 部门树与员工管理完整流程",
+    "steps": [
+      "步骤 1: 创建顶级部门 A",
+      "步骤 2: 在 A 下创建子部门 A-1",
+      "步骤 3: 在 A 下创建子部门 A-2",
+      "步骤 4: 验证部门树结构三层正确",
+      "步骤 5: 创建员工 E1",
+      "步骤 6: 将 E1 分配到部门 A-1（主部门）",
+      "步骤 7: 设置 E1 为部门 A-1 的经理",
+      "步骤 8: 验证 API GET /departments/:id/employees 返回 E1",
+      "步骤 9: 从 A-1 移除 E1",
+      "步骤 10: 验证员工部门关系已解除",
+      "步骤 11: 删除空子部门 A-2",
+      "步骤 12: 验证部门树更新正确"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - API 安全防护全面验证",
+    "steps": [
+      "步骤 1: 不带 Token 调用业务 API 验证 401",
+      "步骤 2: 带无效 Token 调用验证 401",
+      "步骤 3: 带有效 Token 调用验证 200",
+      "步骤 4: 调用 /health 不带 Token 验证 200（公开接口）",
+      "步骤 5: 调用 /auth/login 不带 Token 验证 200（公开接口）",
+      "步骤 6: 验证 API 响应不包含 password 字段",
+      "步骤 7: 验证响应头包含 Helmet 安全头",
+      "步骤 8: 验证 CORS 头设置正确",
+      "步骤 9: 以普通用户 Token 调用管理员 API 验证 403",
+      "步骤 10: 发送大量请求验证 Rate Limiting",
+      "步骤 11: 验证 SQL 注入尝试被 Prisma 阻止"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - Shared 包类型一致性全链路",
+    "steps": [
+      "步骤 1: 运行 pnpm run check:shared 验证类型绑定",
+      "步骤 2: 运行 pnpm run check:dto 验证 DTO 规范",
+      "步骤 3: 运行 pnpm run check:transform 验证转换完整性",
+      "步骤 4: 运行 pnpm run check:optional 验证可选性一致",
+      "步骤 5: 运行 pnpm run check:prisma-coverage 验证模型覆盖",
+      "步骤 6: 运行 pnpm run check:decimal 验证精度处理",
+      "步骤 7: 运行 pnpm run check:no-any 验证无 any",
+      "步骤 8: 运行 pnpm typecheck 验证类型安全",
+      "步骤 9: 运行 pnpm build 验证构建成功",
+      "步骤 10: 验证 shared 包 exports 完整",
+      "步骤 11: 验证前端 import 全部来自 @ky-azeroth/shared"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 批量操作与数据完整性验证",
+    "steps": [
+      "步骤 1: 创建 5 条测试客户",
+      "步骤 2: 在列表中逐条验证已创建",
+      "步骤 3: 勾选其中 3 条记录",
+      "步骤 4: 验证批量操作工具栏显示选中数量",
+      "步骤 5: 点击批量删除并确认",
+      "步骤 6: 验证 3 条记录消失",
+      "步骤 7: 验证剩余 2 条仍在列表中",
+      "步骤 8: 导航至回收站验证 3 条记录",
+      "步骤 9: 恢复其中 1 条",
+      "步骤 10: 返回客户列表验证恢复成功",
+      "步骤 11: 验证数据完整（所有字段值不变）"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "E2E 综合 - 深色模式下全功能验证",
+    "steps": [
+      "步骤 1: 切换到深色模式",
+      "步骤 2: 导航至客户列表验证加载正常",
+      "步骤 3: 打开新建表单验证渲染",
+      "步骤 4: 触发验证错误验证样式正确",
+      "步骤 5: 填写并提交验证成功 Toast 样式",
+      "步骤 6: 打开删除确认对话框验证样式",
+      "步骤 7: 导航至部门管理验证树形结构样式",
+      "步骤 8: 打开审批详情验证时间线样式",
+      "步骤 9: 打开命令面板验证搜索样式",
+      "步骤 10: 导航至仪表盘验证卡片样式",
+      "步骤 11: 切换回浅色模式验证恢复正常"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "E2E 视觉 - 全站页面截图巡检（桌面端）",
+    "steps": [
+      "步骤 1: 截取 /login 页面截图",
+      "步骤 2: 截取首页 / 仪表盘截图",
+      "步骤 3: 截取 /crm/customers 截图",
+      "步骤 4: 截取 /crm/opportunities 截图",
+      "步骤 5: 截取 /projects 截图",
+      "步骤 6: 截取 /organization/departments 截图",
+      "步骤 7: 截取 /approval/flows 截图",
+      "步骤 8: 截取 /system/users 截图",
+      "步骤 9: 截取 /profile 截图",
+      "步骤 10: 截取 /trash 截图",
+      "步骤 11: 验证所有页面无明显视觉缺陷",
+      "步骤 12: 验证全站视觉风格统一"
+    ],
+    "passes": true
+  },
+  {
+    "category": "style",
+    "description": "E2E 视觉 - 全站页面截图巡检（移动端）",
+    "steps": [
+      "步骤 1: 设置移动端视口（375×812）",
+      "步骤 2: 截取 /login 移动端截图",
+      "步骤 3: 截取首页移动端截图",
+      "步骤 4: 截取 /crm/customers 移动端截图（卡片模式）",
+      "步骤 5: 截取底部导航截图",
+      "步骤 6: 打开侧滑菜单截图",
+      "步骤 7: 打开新建表单截图",
+      "步骤 8: 截取 /organization/departments 移动端截图",
+      "步骤 9: 截取 /approval/list 移动端截图",
+      "步骤 10: 验证所有页面无水平溢出",
+      "步骤 11: 验证触控目标大小足够",
+      "步骤 12: 验证移动端整体视觉协调"
+    ],
+    "passes": true
+  }
+]

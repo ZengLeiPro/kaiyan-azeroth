@@ -1,0 +1,3809 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public", "web_analytics"]
+}
+
+// ============ 系统核心模型 ============
+
+/// 用户会话（push 6 起：以 employee.id 为身份主键，不再有 userId）
+model Session {
+  id             String   @id @default(uuid())
+  employeeId     String
+  deviceType     String   @db.VarChar(20)
+  deviceName     String   @db.VarChar(100)
+  browser        String   @db.VarChar(50)
+  os             String   @db.VarChar(50)
+  ipAddress      String   @db.VarChar(50)
+  location       String?  @db.VarChar(100)
+  refreshToken   String   @unique @db.VarChar(500)
+  loginTime      DateTime @default(now())
+  lastActiveTime DateTime @default(now())
+  expiresAt      DateTime
+  employee       Employee @relation("EmployeeSessions", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([refreshToken])
+  @@map("sessions")
+  @@schema("public")
+}
+
+/// 长期访问令牌（Personal Access Token）
+/// 用于第三方系统（如 agent 平台）以特定 employee 身份调用 API。
+/// 走完整 RBAC 链路：tokenHash 命中后注入对应 employee 身份。
+/// 与 Session/refreshToken 解耦，不参与短期 access token 的轮换。
+model PersonalAccessToken {
+  id                String    @id @default(uuid())
+  employeeId        String
+  name              String    @db.VarChar(100) // 用途描述，如 "agent-ops-bot"
+  tokenHash         String    @unique @db.VarChar(128) // SHA-256(token) 的 hex
+  prefix            String    @db.VarChar(50) // token 前缀（pat_<username>_前 8 位 hex），仅供管理界面识别，不参与鉴权
+  lastUsedAt        DateTime?
+  lastUsedIp        String?   @db.VarChar(50)
+  expiresAt         DateTime? // null = 不过期
+  revokedAt         DateTime? // null = 有效
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  employee          Employee  @relation("EmployeePats", fields: [employeeId], references: [id], onDelete: Cascade)
+  creatorEmployee   Employee? @relation("PatCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([employeeId])
+  @@index([revokedAt])
+  @@index([creatorEmployeeId])
+  @@map("personal_access_tokens")
+  @@schema("public")
+}
+
+/// 角色
+model Role {
+  id                String           @id @default(uuid())
+  code              String           @unique @db.VarChar(50)
+  name              String           @db.VarChar(50)
+  description       String?
+  status            String           @default("active") @db.VarChar(20)
+  createdAt         DateTime         @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime         @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int              @default(1)
+  permissions       RolePermission[]
+  users             UserRole[]
+  creatorEmployee   Employee?        @relation("RoleCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee   Employee?        @relation("RoleUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("roles")
+  @@schema("public")
+}
+
+/// 员工角色关联（push 6 起：主键 (employeeId, roleId)，无 userId 列）
+model UserRole {
+  employeeId String
+  roleId     String
+  createdAt  DateTime @default(now())
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  employee   Employee @relation("EmployeeRoles", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@id([employeeId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+  @@schema("public")
+}
+
+/// 角色权限
+model RolePermission {
+  id        String   @id @default(uuid())
+  roleId    String
+  module    String   @db.VarChar(50)
+  menu      String   @db.VarChar(50)
+  view      Boolean  @default(false)
+  create    Boolean  @default(false)
+  edit      Boolean  @default(false)
+  delete    Boolean  @default(false)
+  export    Boolean  @default(false)
+  approve   Boolean  @default(false)
+  /// 数据范围：SELF=仅本人，ALL=全部。多角色取最大范围（OR）
+  viewScope String   @default("SELF") @db.VarChar(20)
+  createdAt DateTime @default(now())
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, module, menu])
+  @@index([module, menu])
+  @@map("role_permissions")
+  @@schema("public")
+}
+
+/// 系统参数配置
+model SystemConfig {
+  id                String    @id @default(uuid())
+  code              String    @unique @db.VarChar(100)
+  name              String    @db.VarChar(100)
+  value             String
+  type              String    @db.VarChar(20)
+  group             String    @db.VarChar(50)
+  description       String?
+  // 审计
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+  creatorEmployee   Employee? @relation("SystemConfigCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee   Employee? @relation("SystemConfigUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("system_configs")
+  @@schema("public")
+}
+
+/// 节假日设置
+/// 仅存「打破默认规则的日期」：HOLIDAY=法定节假日（默认工作日 → 改休），
+/// WORKDAY=调休补班（默认周末 → 改上班）。周末按 dayOfWeek 实时计算，不入库。
+model Holiday {
+  id                String    @id @default(uuid())
+  date              DateTime  @unique @db.Date // 节假日的日期（无时分秒）
+  year              Int // 冗余，便于按年索引/查询
+  type              String    @db.VarChar(20) // 'HOLIDAY' | 'WORKDAY'
+  note              String?   @db.VarChar(100) // 如 '元旦' / '春节调休'
+  // 审计
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  version           Int       @default(1)
+  creatorEmployee   Employee? @relation("HolidayCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee   Employee? @relation("HolidayUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([year])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("holidays")
+  @@schema("public")
+}
+
+/// 列表页筛选方案配置
+model FilterScheme {
+  id                String    @id @default(uuid())
+  pageKey           String    @unique @db.VarChar(80)
+  configJson        Json
+  version           Int       @default(1)
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  updaterEmployee   Employee? @relation("FilterSchemeUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([updaterEmployeeId])
+  @@map("filter_schemes")
+  @@schema("public")
+}
+
+/// 用户按页面保存的筛选栏展示配置
+model PersonalFilterPreference {
+  id         String   @id @default(uuid())
+  employeeId String
+  pageKey    String   @db.VarChar(80)
+  configJson Json
+  version    Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  employee   Employee @relation("PersonalFilterPreferenceOwner", fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([employeeId, pageKey])
+  @@index([pageKey])
+  @@map("personal_filter_preferences")
+  @@schema("public")
+}
+
+/// 用户保存的命名筛选条件方案
+model PersonalFilterPreset {
+  id          String   @id @default(uuid())
+  employeeId  String
+  pageKey     String   @db.VarChar(80)
+  name        String   @db.VarChar(80)
+  filtersJson Json
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  employee    Employee @relation("PersonalFilterPresetOwner", fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([employeeId, pageKey, name])
+  @@index([employeeId, pageKey, updatedAt])
+  @@map("personal_filter_presets")
+  @@schema("public")
+}
+
+/// 列表表格的全员默认配置（管理员推送的列宽 / 列显隐）
+/// pageKey 形如 "/crm/customers" 或 "/approvals:pending"（path + 可选 storageId）
+/// configJson: { visibility?: Record<string,boolean>, widths?: Record<string,number> }
+/// version: 每次 admin 保存自增，客户端依据它判断"是否需要强制覆盖本地"
+model TablePreference {
+  id                String    @id @default(uuid())
+  pageKey           String    @unique @db.VarChar(200)
+  configJson        Json
+  version           Int       @default(1)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+  creatorEmployeeId String?
+  updaterEmployeeId String?
+  creatorEmployee   Employee? @relation("TablePreferenceCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee   Employee? @relation("TablePreferenceUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("table_preferences")
+  @@schema("public")
+}
+
+/// 操作日志
+/// targetCustomerId：客户级活动时间线投影专用字段（2026-06-16 引入）
+///   - module='customers' → 取 target（customer.id 本身）
+///   - 其他 CRM module → 由 CrmChangeLogService 从 before/after.customerId 自动推导
+///   - 非 CRM module（crm-products 等无客户归属）→ null
+/// 不参与业务约束，仅为 GET /customers/:id/activities 提供索引化过滤通道。
+model OperationLog {
+  id               String    @id @default(uuid())
+  employeeId       String?
+  ipAddress        String?   @db.VarChar(50)
+  module           String    @db.VarChar(50)
+  action           String    @db.VarChar(20)
+  target           String?   @db.VarChar(100)
+  targetCustomerId String?   @db.VarChar(50)
+  details          Json?
+  createdAt        DateTime  @default(now())
+  employee         Employee? @relation("EmployeeOperationLogs", fields: [employeeId], references: [id], onDelete: SetNull)
+
+  @@index([employeeId])
+  @@index([module])
+  @@index([module, target, createdAt])
+  @@index([createdAt])
+  @@index([targetCustomerId, createdAt(sort: Desc)])
+  @@map("operation_logs")
+  @@schema("public")
+}
+
+/// 登录日志（不可变审计日志，不存在更新/软删除/并发编辑场景）
+model LoginLog {
+  id         String    @id @default(uuid())
+  employeeId String?
+  username   String    @db.VarChar(100)
+  actionType String    @db.VarChar(10)
+  ip         String    @db.VarChar(50)
+  userAgent  String?   @db.VarChar(500)
+  location   String?   @db.VarChar(200)
+  status     String    @db.VarChar(10)
+  failReason String?
+  createdAt  DateTime  @default(now())
+  employee   Employee? @relation("EmployeeLoginLogs", fields: [employeeId], references: [id], onDelete: SetNull)
+
+  @@index([employeeId])
+  @@index([createdAt])
+  @@map("login_logs")
+  @@schema("public")
+}
+
+/// 通知消息（push 6 起：以 employee 为收件主体，不再有 userId）
+model Notification {
+  id                String    @id @default(uuid())
+  employeeId        String
+  recipientEmployee Employee  @relation("EmployeeNotifications", fields: [employeeId], references: [id], onDelete: Restrict)
+  type              String    @db.VarChar(50)
+  title             String    @db.VarChar(200)
+  content           String
+  link              String?   @db.VarChar(500)
+  isRead            Boolean   @default(false)
+  readAt            DateTime?
+  // 审计
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @default(now()) @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+  creatorEmployee   Employee? @relation("NotificationCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee   Employee? @relation("NotificationUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([employeeId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("notifications")
+  @@schema("public")
+}
+
+/// 业务编号计数器表
+model SerialNumberCounter {
+  id        String   @id @default(cuid())
+  /// 编号类型，如 CUSTOMER, SALE_ORDER
+  type      String   @db.VarChar(50)
+  /// 日期键，格式 YYMMDD，档案类为空字符串
+  dateKey   String?  @db.VarChar(10)
+  /// 当前计数值
+  counter   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, dateKey])
+  @@map("serial_number_counters")
+  @@schema("public")
+}
+
+// ============ 组织架构模型 ============
+
+/// 员工档案
+model Employee {
+  id                                String                     @id @default(uuid())
+  serialNumber                      String                     @unique @db.VarChar(32)
+  name                              String                     @db.VarChar(50)
+  phone                             String?                    @db.VarChar(20)
+  email                             String?                    @db.VarChar(100)
+  gender                            String?                    @db.VarChar(10)
+  position                          String?                    @db.VarChar(50)
+  /// 工时单价（元/小时），按岗位/角色设定
+  /// @precision Decimal
+  hourlyRate                        Decimal?                   @db.Decimal(10, 2)
+  status                            String                     @default("active") @db.VarChar(20)
+  entryDate                         DateTime?
+  avatar                            String?                    @db.VarChar(500)
+  // 钉钉同步字段
+  dingtalkUserId                    String?                    @unique @db.VarChar(50)
+  /// 全局 nullable UNIQUE 由 contract-migrations/20260824230000_employee_dingtalk_union_unique 人工收口；
+  /// 收口前应用层仍须 fail-closed 检测重复，不得假设生产数据唯一。
+  dingtalkUnionId                   String?                    @db.VarChar(50)
+  jobNumber                         String?                    @db.VarChar(50)
+  workPlace                         String?                    @db.VarChar(200)
+  isAdmin                           Boolean                    @default(false)
+  isBoss                            Boolean                    @default(false)
+  isLeader                          Boolean                    @default(false)
+  dingtalkActive                    Boolean                    @default(true)
+  dingtalkExtension                 Json?
+  lastSyncAt                        DateTime?
+  // 登录字段（push 1 加，从 users 表迁移；push 2 数据回填，push 6 删 users 表完成合并）
+  username                          String?                    @unique @db.VarChar(50)
+  password                          String?                    @db.VarChar(255)
+  // 2026-05-23：默认值从 "active" 改为 "disabled"，与 canLogin 默认 false 对齐。
+  // 鉴权门是 `loginStatus !== 'active' || !canLogin`，新建员工默认应当不能登录，
+  // 由管理员显式经 users.updateStatus() 同步开通 loginStatus + canLogin。
+  loginStatus                       String                     @default("disabled") @db.VarChar(20)
+  canLogin                          Boolean                    @default(false)
+  lastLoginAt                       DateTime?
+  lastLoginIp                       String?                    @db.VarChar(50)
+  loginFailCount                    Int                        @default(0)
+  lockUntil                         DateTime?
+  /// push 4 新增：JWT iat < tokenInvalidAfter 视为失效；用于强制重登（NOW() 即可全员失效）
+  tokenInvalidAfter                 DateTime?
+  // 审计字段
+  createdAt                         DateTime                   @default(now())
+  creatorEmployeeId                 String?
+  updatedAt                         DateTime                   @updatedAt
+  updaterEmployeeId                 String?
+  deletedAt                         DateTime?
+  version                           Int                        @default(1)
+  // 关联
+  creatorEmployee                   Employee?                  @relation("EmployeeCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee                   Employee?                  @relation("EmployeeUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+  createdEmployees                  Employee[]                 @relation("EmployeeCreator")
+  updatedEmployees                  Employee[]                 @relation("EmployeeUpdater")
+  departments                       EmployeeDepartment[]       @relation("EmployeeDepartmentMember")
+  managedDepartments                Department[]               @relation("DepartmentManager")
+  // 反向关联：Employee ID 归一化
+  chargedCustomers                  Customer[]                 @relation("CustomerCharger")
+  chargedOpportunities              Opportunity[]              @relation("OpportunityCharger")
+  chargedSaleOrders                 SaleOrder[]                @relation("SaleOrderCharger")
+  chargedPayments                   Payment[]                  @relation("PaymentCharger")
+  chargedInvoices                   Invoice[]                  @relation("InvoiceCharger")
+  payrollRecords                    PayrollRecord[]            @relation("PayrollRecordEmployee")
+  chargedKeepRecords                KeepRecord[]               @relation("KeepRecordCharger")
+  chargedVisitRecords               VisitRecord[]              @relation("VisitRecordCharger")
+  sentWorkDailies                   CrmWorkDaily[]             @relation("WorkDailySender")
+  ownedProjects                     Project[]                  @relation("ProjectOwner")
+  ownedEffortRecords                EffortRecord[]             @relation("EffortOwner")
+  projectMemberships                ProjectMember[]            @relation("MemberEmployee")
+  dispatchedTickets                 ProjectTicket[]            @relation("TicketDispatcher")
+  assignedTickets                   ProjectTicket[]            @relation("TicketAssignee")
+  // 反向关联：yccrm 历史数据创建人/修改人（04-28 新增）
+  createdCustomers                  Customer[]                 @relation("CustomerCreator")
+  updatedCustomers                  Customer[]                 @relation("CustomerUpdater")
+  leadStageUpdatedCustomers         Customer[]                 @relation("CustomerLeadStageUpdater")
+  leadStageQualifiedCustomers       Customer[]                 @relation("CustomerLeadStageQualifier")
+  leadProgressUpdatedCustomers      Customer[]                 @relation("CustomerLeadProgressUpdater")
+  createdContacts                   Contact[]                  @relation("ContactCreator")
+  updatedContacts                   Contact[]                  @relation("ContactUpdater")
+  createdOpportunities              Opportunity[]              @relation("OpportunityCreator")
+  updatedOpportunities              Opportunity[]              @relation("OpportunityUpdater")
+  createdSaleOrders                 SaleOrder[]                @relation("SaleOrderCreator")
+  updatedSaleOrders                 SaleOrder[]                @relation("SaleOrderUpdater")
+  createdPayments                   Payment[]                  @relation("PaymentCreator")
+  updatedPayments                   Payment[]                  @relation("PaymentUpdater")
+  createdPaymentItems               PaymentItem[]              @relation("PaymentItemCreator")
+  updatedPaymentItems               PaymentItem[]              @relation("PaymentItemUpdater")
+  createdInvoices                   Invoice[]                  @relation("InvoiceCreator")
+  updatedInvoices                   Invoice[]                  @relation("InvoiceUpdater")
+  createdKeepRecords                KeepRecord[]               @relation("KeepRecordCreator")
+  updatedKeepRecords                KeepRecord[]               @relation("KeepRecordUpdater")
+  createdVisitRecords               VisitRecord[]              @relation("VisitRecordCreator")
+  updatedVisitRecords               VisitRecord[]              @relation("VisitRecordUpdater")
+  createdCrmProducts                CrmProduct[]               @relation("CrmProductCreator")
+  updatedCrmProducts                CrmProduct[]               @relation("CrmProductUpdater")
+  createdOpportunityProducts        OpportunityProduct[]       @relation("OpportunityProductCreator")
+  updatedOpportunityProducts        OpportunityProduct[]       @relation("OpportunityProductUpdater")
+  createdOrderProducts              OrderProduct[]             @relation("OrderProductCreator")
+  updatedOrderProducts              OrderProduct[]             @relation("OrderProductUpdater")
+  createdCrmWorkDailies             CrmWorkDaily[]             @relation("CrmWorkDailyCreator")
+  updatedCrmWorkDailies             CrmWorkDaily[]             @relation("CrmWorkDailyUpdater")
+  // 反向关联：push 4 新增的 6 张鉴权 FK 表 employeeId
+  sessions                          Session[]                  @relation("EmployeeSessions")
+  personalAccessTokens              PersonalAccessToken[]      @relation("EmployeePats")
+  userRoles                         UserRole[]                 @relation("EmployeeRoles")
+  operationLogs                     OperationLog[]             @relation("EmployeeOperationLogs")
+  loginLogs                         LoginLog[]                 @relation("EmployeeLoginLogs")
+  notifications                     Notification[]             @relation("EmployeeNotifications")
+  // 反向关联：push 1 新增的 31 张表 creator/updater（push 6 起 User 表已删除）
+  createdPats                       PersonalAccessToken[]      @relation("PatCreator")
+  createdRoles                      Role[]                     @relation("RoleCreator")
+  updatedRoles                      Role[]                     @relation("RoleUpdater")
+  createdSystemConfigs              SystemConfig[]             @relation("SystemConfigCreator")
+  updatedSystemConfigs              SystemConfig[]             @relation("SystemConfigUpdater")
+  createdHolidays                   Holiday[]                  @relation("HolidayCreator")
+  updatedHolidays                   Holiday[]                  @relation("HolidayUpdater")
+  updatedFilterSchemes              FilterScheme[]             @relation("FilterSchemeUpdater")
+  personalFilterPreferences         PersonalFilterPreference[] @relation("PersonalFilterPreferenceOwner")
+  personalFilterPresets             PersonalFilterPreset[]     @relation("PersonalFilterPresetOwner")
+  createdTablePreferences           TablePreference[]          @relation("TablePreferenceCreator")
+  updatedTablePreferences           TablePreference[]          @relation("TablePreferenceUpdater")
+  createdNotifications              Notification[]             @relation("NotificationCreator")
+  updatedNotifications              Notification[]             @relation("NotificationUpdater")
+  // 销售数据闭环：待办收件人 + 审计/处置人
+  salesActionItems                  SalesActionItem[]          @relation("SalesActionOwner")
+  createdSalesActionItems           SalesActionItem[]          @relation("SalesActionItemCreator")
+  updatedSalesActionItems           SalesActionItem[]          @relation("SalesActionItemUpdater")
+  resolvedSalesActionItems          SalesActionItem[]          @relation("SalesActionItemResolver")
+  createdDepartments                Department[]               @relation("DepartmentCreator")
+  updatedDepartments                Department[]               @relation("DepartmentUpdater")
+  createdEmployeeDepartments        EmployeeDepartment[]       @relation("EmployeeDepartmentCreator")
+  createdPayrollImportBatches       PayrollImportBatch[]       @relation("PayrollImportBatchCreator")
+  updatedPayrollImportBatches       PayrollImportBatch[]       @relation("PayrollImportBatchUpdater")
+  createdPayrollPeriods             PayrollPeriod[]            @relation("PayrollPeriodCreator")
+  updatedPayrollPeriods             PayrollPeriod[]            @relation("PayrollPeriodUpdater")
+  createdPayrollRecords             PayrollRecord[]            @relation("PayrollRecordCreator")
+  updatedPayrollRecords             PayrollRecord[]            @relation("PayrollRecordUpdater")
+  createdProjects                   Project[]                  @relation("ProjectCreator")
+  updatedProjects                   Project[]                  @relation("ProjectUpdater")
+  createdProjectSaleOrders          ProjectSaleOrder[]         @relation("ProjectSaleOrderCreator")
+  createdProjectMembers             ProjectMember[]            @relation("ProjectMemberCreator")
+  updatedProjectMembers             ProjectMember[]            @relation("ProjectMemberUpdater")
+  createdEffortRecords              EffortRecord[]             @relation("EffortRecordCreator")
+  updatedEffortRecords              EffortRecord[]             @relation("EffortRecordUpdater")
+  createdProjectTickets             ProjectTicket[]            @relation("ProjectTicketCreator")
+  updatedProjectTickets             ProjectTicket[]            @relation("ProjectTicketUpdater")
+  createdApprovalFlows              ApprovalFlow[]             @relation("ApprovalFlowCreator")
+  updatedApprovalFlows              ApprovalFlow[]             @relation("ApprovalFlowUpdater")
+  createdApprovalFlowNodes          ApprovalFlowNode[]         @relation("ApprovalFlowNodeCreator")
+  updatedApprovalFlowNodes          ApprovalFlowNode[]         @relation("ApprovalFlowNodeUpdater")
+  createdApprovalInstances          ApprovalInstance[]         @relation("ApprovalInstanceCreator")
+  updatedApprovalInstances          ApprovalInstance[]         @relation("ApprovalInstanceUpdater")
+  createdApprovalTasks              ApprovalTask[]             @relation("ApprovalTaskCreator")
+  updatedApprovalTasks              ApprovalTask[]             @relation("ApprovalTaskUpdater")
+  createdApprovalChangeRequests     ApprovalChangeRequest[]    @relation("ApprovalChangeRequestCreator")
+  updatedApprovalChangeRequests     ApprovalChangeRequest[]    @relation("ApprovalChangeRequestUpdater")
+  createdDietFoods                  DietFood[]                 @relation("DietFoodCreator")
+  updatedDietFoods                  DietFood[]                 @relation("DietFoodUpdater")
+  createdDietSupplements            DietSupplement[]           @relation("DietSupplementCreator")
+  updatedDietSupplements            DietSupplement[]           @relation("DietSupplementUpdater")
+  createdDietPlans                  DietPlan[]                 @relation("DietPlanCreator")
+  updatedDietPlans                  DietPlan[]                 @relation("DietPlanUpdater")
+  createdDietMealSlots              DietMealSlot[]             @relation("DietMealSlotCreator")
+  updatedDietMealSlots              DietMealSlot[]             @relation("DietMealSlotUpdater")
+  createdDietPlanSupplements        DietPlanSupplement[]       @relation("DietPlanSupplementCreator")
+  updatedDietPlanSupplements        DietPlanSupplement[]       @relation("DietPlanSupplementUpdater")
+  createdDietDailyLogs              DietDailyLog[]             @relation("DietDailyLogCreator")
+  updatedDietDailyLogs              DietDailyLog[]             @relation("DietDailyLogUpdater")
+  createdDietDailyMealEntries       DietDailyMealEntry[]       @relation("DietDailyMealEntryCreator")
+  updatedDietDailyMealEntries       DietDailyMealEntry[]       @relation("DietDailyMealEntryUpdater")
+  createdDietDailySupplementEntries DietDailySupplementEntry[] @relation("DietDailySupplementEntryCreator")
+  updatedDietDailySupplementEntries DietDailySupplementEntry[] @relation("DietDailySupplementEntryUpdater")
+  createdDietWaterLogs              DietWaterLog[]             @relation("DietWaterLogCreator")
+  updatedDietWaterLogs              DietWaterLog[]             @relation("DietWaterLogUpdater")
+  createdDietSubjectiveLogs         DietSubjectiveLog[]        @relation("DietSubjectiveLogCreator")
+  updatedDietSubjectiveLogs         DietSubjectiveLog[]        @relation("DietSubjectiveLogUpdater")
+  createdBodyMetrics                BodyMetric[]               @relation("BodyMetricCreator")
+  updatedBodyMetrics                BodyMetric[]               @relation("BodyMetricUpdater")
+  createdDietPurchaseItems          DietPurchaseItem[]         @relation("DietPurchaseItemCreator")
+  updatedDietPurchaseItems          DietPurchaseItem[]         @relation("DietPurchaseItemUpdater")
+  // 已下线健康中心遗留表（expand-only，待 contract DROP）
+  createdExerciseLibraries          ExerciseLibrary[]          @relation("ExerciseLibraryCreator")
+  updatedExerciseLibraries          ExerciseLibrary[]          @relation("ExerciseLibraryUpdater")
+  createdWorkoutSessions            WorkoutSession[]           @relation("WorkoutSessionCreator")
+  updatedWorkoutSessions            WorkoutSession[]           @relation("WorkoutSessionUpdater")
+  createdWorkoutExercises           WorkoutExercise[]          @relation("WorkoutExerciseCreator")
+  updatedWorkoutExercises           WorkoutExercise[]          @relation("WorkoutExerciseUpdater")
+  createdWorkoutSets                WorkoutSet[]               @relation("WorkoutSetCreator")
+  updatedWorkoutSets                WorkoutSet[]               @relation("WorkoutSetUpdater")
+  // 财务模块（仅 admin 用户可见，username='admin' 锁死）
+  createdFinanceAccounts            FinanceAccount[]           @relation("FinanceAccountCreator")
+  updatedFinanceAccounts            FinanceAccount[]           @relation("FinanceAccountUpdater")
+  createdFinanceSubjects            FinanceSubject[]           @relation("FinanceSubjectCreator")
+  updatedFinanceSubjects            FinanceSubject[]           @relation("FinanceSubjectUpdater")
+  createdFinanceLedgers             FinanceLedger[]            @relation("FinanceLedgerCreator")
+  updatedFinanceLedgers             FinanceLedger[]            @relation("FinanceLedgerUpdater")
+  createdFinancePersonalLedgers     FinancePersonalLedger[]    @relation("FinancePersonalLedgerCreator")
+  updatedFinancePersonalLedgers     FinancePersonalLedger[]    @relation("FinancePersonalLedgerUpdater")
+  createdFinanceImportBatches       FinanceImportBatch[]       @relation("FinanceImportBatchCreator")
+  updatedFinanceImportBatches       FinanceImportBatch[]       @relation("FinanceImportBatchUpdater")
+  uploadedFileAssets                FileAsset[]                @relation("FileAssetOwner")
+
+  @@index([status])
+  @@index([gender])
+  @@index([entryDate])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([isAdmin])
+  @@index([isLeader])
+  @@index([dingtalkActive])
+  @@index([username])
+  @@index([canLogin])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("employees")
+  @@schema("public")
+}
+
+/// 上传文件资产。业务对象仍在各自 attachments JSON 中维护关联与读取权限；
+/// 本表只记录不可变的存储身份和上传人，下载授权由业务响应签发的短时令牌控制。
+model FileAsset {
+  id              String   @id @default(uuid())
+  storageKey      String   @unique @db.VarChar(600)
+  originalName    String   @db.VarChar(255)
+  size            Int
+  mimeType        String   @db.VarChar(150)
+  ownerEmployeeId String
+  ownerEmployee   Employee @relation("FileAssetOwner", fields: [ownerEmployeeId], references: [id], onDelete: Restrict)
+  createdAt       DateTime @default(now())
+
+  @@index([ownerEmployeeId, createdAt])
+  @@map("file_assets")
+  @@schema("public")
+}
+
+/// 常驻内部运维入口的幂等执行账本。
+model InternalOperationExecution {
+  id             String    @id @default(uuid())
+  operation      String    @db.VarChar(80)
+  idempotencyKey String    @db.VarChar(120)
+  requestHash    String    @db.VarChar(64)
+  status         String    @db.VarChar(20)
+  resultJson     Json?
+  errorMessage   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  finishedAt     DateTime?
+
+  @@unique([operation, idempotencyKey])
+  @@index([operation, createdAt])
+  @@map("internal_operation_executions")
+  @@schema("public")
+}
+
+/// 部门
+model Department {
+  id                String               @id @default(uuid())
+  name              String               @db.VarChar(100)
+  parentId          String?
+  sortOrder         Int                  @default(0)
+  status            String               @default("active") @db.VarChar(20)
+  managerId         String?
+  // 钉钉同步字段
+  dingtalkDeptId    Int?                 @unique
+  dingtalkParentId  Int?
+  createDeptGroup   Boolean              @default(false)
+  autoAddUser       Boolean              @default(false)
+  lastSyncAt        DateTime?
+  // 审计字段
+  createdAt         DateTime             @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime             @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int                  @default(1)
+  // 关联
+  parent            Department?          @relation("DepartmentTree", fields: [parentId], references: [id])
+  children          Department[]         @relation("DepartmentTree")
+  manager           Employee?            @relation("DepartmentManager", fields: [managerId], references: [id])
+  employees         EmployeeDepartment[]
+  payrollRecords    PayrollRecord[]
+  creatorEmployee   Employee?            @relation("DepartmentCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee   Employee?            @relation("DepartmentUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([parentId])
+  @@index([managerId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("departments")
+  @@schema("public")
+}
+
+/// 员工-部门关联（多对多）
+model EmployeeDepartment {
+  id                String     @id @default(uuid())
+  employeeId        String
+  departmentId      String
+  isPrimary         Boolean    @default(false)
+  sortOrder         Int        @default(0)
+  createdAt         DateTime   @default(now())
+  creatorEmployeeId String?
+  // 关联
+  employee          Employee   @relation("EmployeeDepartmentMember", fields: [employeeId], references: [id], onDelete: Cascade)
+  department        Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  creatorEmployee   Employee?  @relation("EmployeeDepartmentCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+
+  @@unique([employeeId, departmentId])
+  @@index([employeeId])
+  @@index([departmentId])
+  @@index([creatorEmployeeId])
+  @@map("employee_departments")
+  @@schema("public")
+}
+
+// ============ CRM 模型 ============
+
+/// 客户
+model Customer {
+  id                      String        @id @default(uuid())
+  yccrmId                 String?       @unique @db.VarChar(100)
+  serialNumber            String        @unique @db.VarChar(32)
+  customerName            String        @db.VarChar(200)
+  shortName               String?       @db.VarChar(100)
+  industry                String?       @db.VarChar(100)
+  customerLevel           String?       @db.VarChar(50)
+  customerSource          String?       @db.VarChar(50)
+  customerRelationship    String?       @db.VarChar(50)
+  customerTags            Json?
+  // 地址
+  country                 String?       @db.VarChar(50)
+  province                String?       @db.VarChar(50)
+  city                    String?       @db.VarChar(50)
+  district                String?       @db.VarChar(50)
+  address                 String?
+  remark                  String?
+  aiInfoSummary           String?
+  aiInfoGeneratedAt       DateTime?
+  // 组织信息
+  organizationId          String?       @db.VarChar(100)
+  uncId                   String?       @db.VarChar(50)
+  headcountRange          String?       @db.VarChar(50)
+  // 负责人
+  chargerId               String?
+  chargerName             String?       @db.VarChar(50)
+  charger                 Employee?     @relation("CustomerCharger", fields: [chargerId], references: [id])
+  collaboratorName        String?
+  collaboratorIds         Json?         @db.JsonB
+  // 跟进状态
+  contactStatus           String?       @db.VarChar(50)
+  dealStatus              String?       @db.VarChar(50)
+  lastKeepRecordTime      DateTime?
+  lastKeepRecordContent   String?
+  // 线索阶段（MQL/SQL）—— 电销跟踪线索质量
+  leadStage               String?       @db.VarChar(10)
+  leadStageUpdatedAt      DateTime?
+  leadStageUpdatedById    String? // 最近一次操作人 employeeId
+  leadStageQualifiedById  String? // 合格判定人 employeeId（可能 ≠ 操作人）
+  leadStageQualifiedAt    DateTime?
+  // 首次进入 MQL/SQL 时间（write-once，永不覆盖；用于 cohort 漏斗分析，避免 leadStageUpdatedAt 因回归/重升被覆盖丢失"第一次"语义）
+  firstMqlAt              DateTime?
+  firstSqlAt              DateTime?
+  leadStageUpdatedBy      Employee?     @relation("CustomerLeadStageUpdater", fields: [leadStageUpdatedById], references: [id], onDelete: SetNull)
+  leadStageQualifiedBy    Employee?     @relation("CustomerLeadStageQualifier", fields: [leadStageQualifiedById], references: [id], onDelete: SetNull)
+  // Leads 推进状态：与 MQL/SQL 阶段分离，承载下一步行动及预约时间
+  leadProgressStatus      String?       @db.VarChar(30)
+  leadAppointmentAt       DateTime?
+  leadProgressReason      String?
+  leadProgressUpdatedAt   DateTime?
+  leadProgressUpdatedById String?
+  leadProgressUpdatedBy   Employee?     @relation("CustomerLeadProgressUpdater", fields: [leadProgressUpdatedById], references: [id], onDelete: SetNull)
+  // 意向信息仅由最近一条填写了意向温度的跟进记录同步，供列表筛选与回访排序。
+  intentTemperature       String        @default("UNJUDGED") @db.VarChar(20)
+  intentReasons           Json?
+  nextFollowUpAt          DateTime?    @db.Date
+  intentUpdatedAt         DateTime?
+  intentUpdatedById       String?
+  intentSourceKeepRecordId String?
+  leadValidity            String        @default("VALID") @db.VarChar(20)
+  leadInvalidReason       String?       @db.VarChar(30)
+  // 财务概要
+  /// @precision Decimal
+  accountsReceivable      Decimal?      @db.Decimal(12, 2)
+  // 状态
+  flowStatus              String?       @db.VarChar(50)
+  status                  String        @default("active") @db.VarChar(20)
+  // 审计
+  createdAt               DateTime      @default(now())
+  /// 客户页「最近修改」；8 类关联业务对象的聚合更新时间由 20260723100000 migration 的数据库触发器维护。
+  updatedAt               DateTime      @updatedAt
+  deletedAt               DateTime?
+  version                 Int           @default(1)
+  // 创建/修改人（yccrm 同步从 raw creator_id/changer_id 反查为 employee.id）
+  creatorEmployeeId       String?
+  updaterEmployeeId       String?
+  creator                 Employee?     @relation("CustomerCreator", fields: [creatorEmployeeId], references: [id])
+  updater                 Employee?     @relation("CustomerUpdater", fields: [updaterEmployeeId], references: [id])
+  // 关联
+  contacts                Contact[]
+  opportunities           Opportunity[]
+  saleOrders              SaleOrder[]
+  payments                Payment[]
+  invoices                Invoice[]
+  keepRecords             KeepRecord[]
+  visitRecords            VisitRecord[]
+  projects                Project[]
+
+  @@index([chargerId])
+  @@index([status])
+  @@index([customerLevel])
+  @@index([customerSource])
+  @@index([contactStatus])
+  @@index([dealStatus])
+  @@index([industry])
+  @@index([customerRelationship])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([accountsReceivable])
+  @@index([chargerId, deletedAt, createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@index([leadStage])
+  @@index([leadStage, leadStageUpdatedAt])
+  @@index([leadStageUpdatedById])
+  @@index([leadStageQualifiedById])
+  @@index([firstMqlAt])
+  @@index([firstSqlAt])
+  @@index([leadProgressStatus])
+  @@index([leadAppointmentAt])
+  @@index([leadProgressUpdatedById])
+  @@index([intentTemperature])
+  @@index([nextFollowUpAt])
+  @@index([leadValidity])
+  @@index([intentUpdatedById])
+  @@map("customers")
+  @@schema("public")
+}
+
+/// 联系人
+model Contact {
+  id                String        @id @default(uuid())
+  yccrmId           String?       @unique @db.VarChar(100)
+  contactName       String        @db.VarChar(100)
+  customerId        String
+  sex               String?       @db.VarChar(10)
+  mobile            String?       @db.VarChar(50)
+  phone             String?       @db.VarChar(50)
+  email             String?       @db.VarChar(100)
+  wechat            String?       @db.VarChar(100)
+  position          String?       @db.VarChar(100)
+  department        String?       @db.VarChar(100)
+  // KP 标记（2026-06-20 治理引入）：用于筛选"关键决策人"
+  //   - isKp: 是否 KP（人工标记，默认 false）
+  //   - kpRole: 决策角色（拍板/技术守门/财务守门/影响人/其他），可空，仅 isKp=true 时填
+  // 业务背景：CRM 缺乏 KP 维度可观测性，联系人数量增大后无法快速筛"找谁能拍板"。
+  // 字段填充策略：纯人工输入，无派生逻辑——销售在联系人详情勾选
+  isKp              Boolean       @default(false)
+  kpRole            String?       @db.VarChar(50)
+  remark            String?
+  flowStatus        String?       @db.VarChar(50)
+  status            String        @default("active") @db.VarChar(20)
+  // 审计
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+  version           Int           @default(1)
+  // 创建/修改人（yccrm 同步从 raw creator_id/changer_id 反查为 employee.id）
+  creatorEmployeeId String?
+  updaterEmployeeId String?
+  creator           Employee?     @relation("ContactCreator", fields: [creatorEmployeeId], references: [id])
+  updater           Employee?     @relation("ContactUpdater", fields: [updaterEmployeeId], references: [id])
+  // 关联
+  customer          Customer      @relation(fields: [customerId], references: [id])
+  opportunities     Opportunity[]
+  keepRecords       KeepRecord[]
+  visitRecords      VisitRecord[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([customerId, deletedAt, createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@index([isKp, customerId])
+  @@map("contacts")
+  @@schema("public")
+}
+
+/// 商机
+model Opportunity {
+  id                        String               @id @default(uuid())
+  yccrmId                   String?              @unique @db.VarChar(100)
+  serialNumber              String               @unique @db.VarChar(32)
+  opportunityName           String               @db.VarChar(200)
+  customerId                String
+  contactId                 String?
+  contact                   Contact?             @relation(fields: [contactId], references: [id])
+  opportunityStage          String?              @db.VarChar(50)
+  /// @precision Decimal
+  opportunityAmount         Decimal?             @db.Decimal(12, 2)
+  /// @precision Decimal
+  winRate                   Decimal?             @db.Decimal(5, 2)
+  expectedDealDate          DateTime?
+  realDealDate              DateTime?
+  /// 输单流失日期。stage 切到「输单流失」且原值为空时自动填当前时间。
+  lostDate                  DateTime?
+  chargerId                 String?
+  chargerName               String?              @db.VarChar(50)
+  charger                   Employee?            @relation("OpportunityCharger", fields: [chargerId], references: [id])
+  loseReason                String?
+  /// 失单原因备注（当 loseReason='其他' 时承载自由文本说明；历史脏数据迁移到此字段）
+  loseReasonDetail          String?
+  remark                    String?
+  /// WON 来源：manual=人工确认，sale_order=有效订单派生；NULL 为历史未知，按不破坏数据处理。
+  wonSourceType             String?              @db.VarChar(20)
+  /// 订单派生 WON 当前归属的来源订单；仅作 provenance 快照，不建立强 FK。
+  wonSourceSaleOrderId      String?
+  /// 首次由订单推到 WON 前的阶段/成交日/赢单率，用于最后一份来源订单失效时精确恢复。
+  wonSourcePreviousStage    String?              @db.VarChar(50)
+  wonSourcePreviousDealDate DateTime?
+  wonSourcePreviousWinRate  Decimal?             @db.Decimal(5, 2)
+  flowStatus                String?              @db.VarChar(50)
+  status                    String               @default("active") @db.VarChar(20)
+  // 审计
+  createdAt                 DateTime             @default(now())
+  updatedAt                 DateTime             @updatedAt
+  deletedAt                 DateTime?
+  version                   Int                  @default(1)
+  // 创建/修改人（yccrm 同步从 raw creator_id/changer_id 反查为 employee.id）
+  creatorEmployeeId         String?
+  updaterEmployeeId         String?
+  creator                   Employee?            @relation("OpportunityCreator", fields: [creatorEmployeeId], references: [id])
+  updater                   Employee?            @relation("OpportunityUpdater", fields: [updaterEmployeeId], references: [id])
+  // 关联
+  customer                  Customer             @relation(fields: [customerId], references: [id])
+  /// 2026-07-21 起业务上最多一份有效订单；历史一对多保留，由 migration trigger 约束今后写入。
+  saleOrders                SaleOrder[]
+  products                  OpportunityProduct[]
+  project                   Project?
+
+  @@index([customerId])
+  @@index([contactId])
+  @@index([chargerId])
+  @@index([status])
+  @@index([opportunityStage])
+  @@index([expectedDealDate])
+  @@index([realDealDate])
+  @@index([lostDate])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([opportunityAmount])
+  @@index([chargerId, deletedAt, createdAt])
+  @@index([customerId, deletedAt, createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("opportunities")
+  @@schema("public")
+}
+
+/// 合同订单
+model SaleOrder {
+  id                 String             @id @default(uuid())
+  yccrmId            String?            @unique @db.VarChar(100)
+  serialNumber       String             @unique @db.VarChar(32)
+  orderTitle         String?            @db.VarChar(200)
+  customerId         String
+  opportunityId      String?
+  /// @precision Decimal
+  orderAmount        Decimal?           @db.Decimal(12, 2)
+  /// 其他相关费用（YCCRM 历史字段 sale_order_amount_0，AMOUNT 类型自定义字段） @precision Decimal
+  otherFee           Decimal?           @db.Decimal(12, 2)
+  /// 坏账金额：核销未收余额，不计入实际回款 @precision Decimal
+  badDebtAmount      Decimal            @default(0) @db.Decimal(12, 2)
+  /// @precision Decimal
+  productAmount      Decimal?           @db.Decimal(12, 2)
+  /// @precision Decimal
+  totalReceivables   Decimal?           @db.Decimal(12, 2)
+  /// @precision Decimal
+  totalReceived      Decimal?           @db.Decimal(12, 2)
+  /// 已退款总额：SUM(Payment WHERE direction='OUT' AND legacyAdjustment=false AND flowStatus='approved') @precision Decimal
+  totalRefunded      Decimal            @default(0) @db.Decimal(12, 2)
+  /// @precision Decimal
+  totalUncollected   Decimal?           @db.Decimal(12, 2)
+  /// 已开票金额：sum(invoice.invoiceAmount) where flowStatus='approved' AND status='active'
+  /// @precision Decimal
+  invoicedAmount     Decimal            @default(0) @db.Decimal(12, 2)
+  /// 订单维度的开票状态：未开票 / 部分开票 / 已开完（与 Invoice.invoiceStatus 的"正常/作废"是不同维度）
+  orderInvoiceStatus String?            @db.VarChar(50)
+  orderStatus        String?            @db.VarChar(50)
+  /// 历史负向订单标识；仅由受控治理迁移写入，普通创建/编辑接口不可写
+  legacyAdjustment   Boolean            @default(false)
+  businessDate       DateTime?
+  paymentDate        DateTime?
+  /// 最近回款日期：MAX(Payment.businessDate WHERE direction='IN' AND flowStatus='approved')，
+  /// 由 payment-summary.helper 派生维护（与 totalReceived 同口径）；与手工录入的 paymentDate（回款时间）语义不同
+  lastPaymentDate    DateTime?
+  orderBeginDate     DateTime?
+  orderEndDate       DateTime?
+  chargerId          String?
+  chargerName        String?            @db.VarChar(50)
+  charger            Employee?          @relation("SaleOrderCharger", fields: [chargerId], references: [id])
+  remark             String?
+  flowStatus         String?            @db.VarChar(50)
+  status             String             @default("active") @db.VarChar(20)
+  // 审计
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  deletedAt          DateTime?
+  version            Int                @default(1)
+  // 创建/修改人（yccrm 同步从 raw creator_id/changer_id 反查为 employee.id）
+  creatorEmployeeId  String?
+  updaterEmployeeId  String?
+  creator            Employee?          @relation("SaleOrderCreator", fields: [creatorEmployeeId], references: [id])
+  updater            Employee?          @relation("SaleOrderUpdater", fields: [updaterEmployeeId], references: [id])
+  // 关联
+  customer           Customer           @relation(fields: [customerId], references: [id])
+  opportunity        Opportunity?       @relation(fields: [opportunityId], references: [id])
+  payments           Payment[]
+  invoices           Invoice[]
+  products           OrderProduct[]
+  projectLinks       ProjectSaleOrder[]
+  project            Project?           @relation("ProjectPrimarySaleOrder")
+  financeLedgers     FinanceLedger[]    @relation("FinanceLedgerSaleOrder")
+
+  @@index([customerId])
+  @@index([opportunityId])
+  @@index([chargerId])
+  @@index([status])
+  @@index([orderStatus])
+  @@index([businessDate])
+  @@index([paymentDate])
+  @@index([lastPaymentDate])
+  @@index([orderBeginDate])
+  @@index([orderEndDate])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([orderAmount])
+  @@index([invoicedAmount])
+  @@index([orderInvoiceStatus])
+  @@index([chargerId, deletedAt, createdAt])
+  @@index([customerId, deletedAt, createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("sale_orders")
+  @@schema("public")
+}
+
+/// 回款 / 退款
+/// direction='IN'  → 回款（PAY-xxxxx）
+/// direction='OUT' → 退款（REF-xxxxx），必须关联一笔已 approved 的 IN 回款（relatedPaymentId）
+model Payment {
+  id                  String          @id @default(uuid())
+  yccrmId             String?         @unique @db.VarChar(100)
+  serialNumber        String          @unique @db.VarChar(32)
+  /// 业务摘要（首期款/进度款/尾款/质保金返还/年费续费/月度服务费/培训费/硬件款/一次性买断/客户退款/...）
+  /// 实体显示名统一规约的派生主源（getEntityDisplayName('payment', e, 'short'/'long'/'withContext')）
+  subject             String          @db.VarChar(100)
+  saleOrderId         String
+  customerId          String
+  /// @precision Decimal
+  paymentAmount       Decimal         @db.Decimal(12, 2)
+  paymentType         String?         @db.VarChar(50)
+  businessDate        DateTime?
+  payer               String?         @db.VarChar(100)
+  bankName            String?         @db.VarChar(100)
+  tradeSerialNumber   String?         @db.VarChar(100)
+  chargerId           String?
+  chargerName         String?         @db.VarChar(50)
+  charger             Employee?       @relation("PaymentCharger", fields: [chargerId], references: [id])
+  remark              String?
+  flowStatus          String?         @db.VarChar(50)
+  status              String          @default("active") @db.VarChar(20)
+  /// 资金流方向：IN=回款 / OUT=退款或历史负向调整。历史数据默认 IN；审批通过后不可修改
+  direction           String          @default("IN") @db.VarChar(10)
+  /// YCCRM 历史负数订单对应的负向调整；仅治理程序可写，不能由业务接口创建
+  legacyAdjustment    Boolean         @default(false)
+  /// 退款类型（普通 direction='OUT' 时必填），取自 PAYMENT_REFUND_TYPE 枚举
+  refundType          String?         @db.VarChar(50)
+  /// 退款原因自由文本（direction='OUT' 时可选）
+  refundReason        String?
+  /// 关联的原回款 ID（普通 direction='OUT' 退款必填；legacyAdjustment=true 时必须为空）
+  relatedPaymentId    String?
+  relatedPayment      Payment?        @relation("PaymentRefund", fields: [relatedPaymentId], references: [id])
+  refundedBy          Payment[]       @relation("PaymentRefund")
+  /// 关联的红字发票 ID（direction='OUT' 时可选），用于已开票退款场景的对账
+  relatedInvoiceId    String?
+  relatedInvoice      Invoice?        @relation("PaymentInvoiceRef", fields: [relatedInvoiceId], references: [id])
+  /// 合并开票来源回款 → 此回款被合并到的发票 ID（v1 单向反向引用，便于在回款列表显示"已合并到发票 X"绿勾）。仅 direction='IN' 时使用；发票被驳回/撤回/软删时回置 null
+  invoicedByInvoiceId String?
+  invoicedByInvoice   Invoice?        @relation("PaymentInvoicedBy", fields: [invoicedByInvoiceId], references: [id])
+  /// 财务收款账户（指向 finance_accounts）—— Payment 通过 service 层兜底必填；2026-06 「CRM 回款 ↔ 财务流水绑定方案 v2.1」引入
+  financeAccountId    String?
+  financeAccount      FinanceAccount? @relation("PaymentFinanceAccount", fields: [financeAccountId], references: [id], onDelete: Restrict)
+  /// 财务入账科目（指向 finance_subjects）—— 可选覆盖；为空时同步钩子用 non_pl.uncategorized 兜底，由 admin 在 finance-ledger 批量改科目
+  financeSubjectId    String?
+  financeSubject      FinanceSubject? @relation("PaymentFinanceSubject", fields: [financeSubjectId], references: [id], onDelete: Restrict)
+  /// 反向 1:N（v2.1→v2.2 调整）：派生的财务流水
+  /// v2.1 是 1:1，v2.2 改为 1:N（同 payment 多 PaymentItem 各派生一条 ledger，merge_with 场景）
+  financeLedgers      FinanceLedger[] @relation("FinanceLedgerPayment")
+  /// 反向 1:N（v2.2 新增）：PaymentItem 子项（一笔 payment 可拆 N 个产品 × N 个科目 × N 个 mode）
+  paymentItems        PaymentItem[]
+  // 审计
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  deletedAt           DateTime?
+  version             Int             @default(1)
+  // 创建/修改人（yccrm 同步从 raw creator_id/changer_id 反查为 employee.id）
+  creatorEmployeeId   String?
+  updaterEmployeeId   String?
+  creator             Employee?       @relation("PaymentCreator", fields: [creatorEmployeeId], references: [id])
+  updater             Employee?       @relation("PaymentUpdater", fields: [updaterEmployeeId], references: [id])
+  // 关联
+  saleOrder           SaleOrder       @relation(fields: [saleOrderId], references: [id])
+  customer            Customer        @relation(fields: [customerId], references: [id])
+
+  @@index([saleOrderId])
+  @@index([customerId])
+  @@index([chargerId])
+  @@index([status])
+  @@index([paymentType])
+  @@index([businessDate])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([paymentAmount])
+  @@index([chargerId, deletedAt, createdAt])
+  @@index([customerId, deletedAt, createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@index([direction, flowStatus, deletedAt])
+  @@index([relatedPaymentId])
+  @@index([relatedInvoiceId])
+  @@index([invoicedByInvoiceId])
+  @@index([financeAccountId])
+  @@index([financeSubjectId])
+  @@map("payments")
+  @@schema("public")
+}
+
+/// CRM 回款子项（绑定方案 v2.2 新增）
+/// 一笔 payment 拆 N 个 PaymentItem，每行 = 一个产品 × 金额 × 财务科目 × 收款模式
+/// 同步钩子按 PaymentItem 派生 N 条 FinanceLedger（dingtalk_collect / pass_through_cost 跳过）
+/// 强引用 OrderProduct：v2.2 Phase 1 落字段时 saleOrderProductId 允许 NULL（历史回填窗口），
+/// Phase 11 完成后单独 migration 加 NOT NULL constraint
+model PaymentItem {
+  id                 String          @id @default(uuid())
+  paymentId          String
+  /// onDelete: Restrict（业务实体走 deletedAt 软删，禁止硬删）
+  payment            Payment         @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  /// 强引用：指向 OrderProduct.id（v2.2 Phase 11 已收紧为 NOT NULL）
+  saleOrderProductId String
+  orderProduct       OrderProduct    @relation(fields: [saleOrderProductId], references: [id], onDelete: Restrict)
+  /// 同 payment 下 item 序号（1-based，便于 UI 排序）
+  itemSeq            Int             @default(1)
+  /// 产品名快照（兼容历史 ledger.remark 拆出的 220 条无法 100% 精确定位的）
+  productName        String          @db.VarChar(200)
+  /// 此 item 的金额（Σ pi.amount where paymentId=p.id 应等于 p.paymentAmount）
+  /// @precision Decimal
+  amount             Decimal         @db.Decimal(12, 2)
+  /// 财务科目（默认从 OrderProduct.financeSubjectId 继承，admin 可手工调整）
+  financeSubjectId   String?
+  financeSubject     FinanceSubject? @relation("PaymentItemFinanceSubject", fields: [financeSubjectId], references: [id], onDelete: SetNull)
+  /// 收款模式（默认从 OrderProduct.paymentMode 继承）
+  /// direct: 派生 ledger 进 P&L 进账户
+  /// dingtalk_collect: 钉钉天元代收，跳过 ledger 派生（佣金月结独立挂账）
+  /// pass_through: 过单实收部分，派生 ledger 进 P&L 进账户
+  /// pass_through_cost: 过单代付成本，跳过 ledger 派生（管理员手工录入代付成本）
+  paymentMode        String          @default("direct") @db.VarChar(20)
+  remark             String?
+  /// 反向 1:1：派生的财务流水（mode=direct/pass_through 时存在）
+  financeLedger      FinanceLedger?  @relation("FinanceLedgerPaymentItem")
+  // 审计
+  createdAt          DateTime        @default(now())
+  creatorEmployeeId  String?
+  updatedAt          DateTime        @updatedAt
+  updaterEmployeeId  String?
+  deletedAt          DateTime?
+  version            Int             @default(1)
+  creator            Employee?       @relation("PaymentItemCreator", fields: [creatorEmployeeId], references: [id])
+  updater            Employee?       @relation("PaymentItemUpdater", fields: [updaterEmployeeId], references: [id])
+
+  @@unique([paymentId, itemSeq])
+  @@index([paymentId])
+  @@index([saleOrderProductId])
+  @@index([financeSubjectId])
+  @@index([paymentMode])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("payment_items")
+  @@schema("public")
+}
+
+/// 开票
+model Invoice {
+  id                String    @id @default(uuid())
+  yccrmId           String?   @unique @db.VarChar(100)
+  serialNumber      String    @unique @db.VarChar(32)
+  /// 开票业务摘要（软件开发服务费/技术服务费/钉钉软件费/钉钉硬件款/培训费/咨询服务费/年度授权费/维护服务费/...）
+  /// 实体显示名统一规约的派生主源；注意区别于 `title` 字段（那是"发票抬头"=客户公司名）
+  subject           String    @db.VarChar(100)
+  saleOrderId       String
+  customerId        String
+  /// @precision Decimal
+  invoiceAmount     Decimal   @db.Decimal(12, 2)
+  invoiceType       String?   @db.VarChar(50)
+  invoiceDate       DateTime?
+  invoiceNumber     String?   @db.VarChar(100)
+  title             String?   @db.VarChar(200)
+  taxIdentifyNum    String?   @db.VarChar(50)
+  invoiceStatus     String?   @db.VarChar(50)
+  itemType          String?   @db.VarChar(50)
+  bankName          String?   @db.VarChar(200)
+  bankAccount       String?   @db.VarChar(100)
+  registeredAddress String?   @db.VarChar(500)
+  registeredPhone   String?   @db.VarChar(50)
+  chargerId         String?
+  chargerName       String?   @db.VarChar(50)
+  charger           Employee? @relation("InvoiceCharger", fields: [chargerId], references: [id])
+  /// 合并开票来源回款 ID 数组（v1 单向引用；合并出来的发票必须满足同 customerId + 同 saleOrderId + 全 IN + 已审批通过 + 未合并过）
+  sourcePaymentIds  Json?
+  remark            String?
+  flowStatus        String?   @db.VarChar(50)
+  status            String    @default("active") @db.VarChar(20)
+  // 审计
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+  version           Int       @default(1)
+  // 创建/修改人（yccrm 同步从 raw creator_id/changer_id 反查为 employee.id）
+  creatorEmployeeId String?
+  updaterEmployeeId String?
+  creator           Employee? @relation("InvoiceCreator", fields: [creatorEmployeeId], references: [id])
+  updater           Employee? @relation("InvoiceUpdater", fields: [updaterEmployeeId], references: [id])
+  // 关联
+  saleOrder         SaleOrder @relation(fields: [saleOrderId], references: [id])
+  customer          Customer  @relation(fields: [customerId], references: [id])
+  /// 反向关系：所有引用此发票（作为红字冲销标记）的退款 Payment
+  refundedPayments  Payment[] @relation("PaymentInvoiceRef")
+  /// 反向关系：所有被合并开到此发票的回款 Payment（v1 合并开票来源回查）
+  mergedPayments    Payment[] @relation("PaymentInvoicedBy")
+
+  @@index([saleOrderId])
+  @@index([customerId])
+  @@index([status])
+  @@index([invoiceStatus])
+  @@index([invoiceType])
+  @@index([itemType])
+  @@index([invoiceDate])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([invoiceAmount])
+  @@index([customerId, deletedAt, createdAt])
+  @@index([chargerId])
+  @@index([chargerId, deletedAt, createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("invoices")
+  @@schema("public")
+}
+
+/// 薪资导入批次
+model PayrollImportBatch {
+  id                String          @id @default(uuid())
+  sourceFileName    String?         @db.VarChar(255)
+  totalSheets       Int             @default(0)
+  parsedSheets      Int             @default(0)
+  totalRows         Int             @default(0)
+  successRows       Int             @default(0)
+  failedRows        Int             @default(0)
+  skippedRows       Int             @default(0)
+  strategy          String          @default("replace_period") @db.VarChar(50)
+  status            String          @default("pending") @db.VarChar(20)
+  previewJson       Json?
+  summaryJson       Json?
+  errorReportJson   Json?
+  createdAt         DateTime        @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime        @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int             @default(1)
+  periods           PayrollPeriod[]
+  records           PayrollRecord[]
+  creatorEmployee   Employee?       @relation("PayrollImportBatchCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee   Employee?       @relation("PayrollImportBatchUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([deletedAt, createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("payroll_import_batches")
+  @@schema("public")
+}
+
+/// 薪资期间
+model PayrollPeriod {
+  id                String              @id @default(uuid())
+  periodKey         String              @unique @db.VarChar(7)
+  year              Int
+  month             Int
+  sheetName         String?             @db.VarChar(100)
+  companyName       String?             @db.VarChar(200)
+  expectedWorkDays  Decimal?            @db.Decimal(8, 3)
+  statementDate     DateTime?
+  sourceFileName    String?             @db.VarChar(255)
+  importBatchId     String?
+  status            String              @default("imported") @db.VarChar(20)
+  rowCount          Int                 @default(0)
+  remark            String?
+  createdAt         DateTime            @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime            @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int                 @default(1)
+  importBatch       PayrollImportBatch? @relation(fields: [importBatchId], references: [id])
+  records           PayrollRecord[]
+  creatorEmployee   Employee?           @relation("PayrollPeriodCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee   Employee?           @relation("PayrollPeriodUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([year, month])
+  @@index([importBatchId])
+  @@index([deletedAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("payroll_periods")
+  @@schema("public")
+}
+
+/// 员工薪资记录
+model PayrollRecord {
+  id                           String              @id @default(uuid())
+  payrollPeriodId              String
+  employeeId                   String?
+  departmentId                 String?
+  employeeNameSnapshot         String              @db.VarChar(100)
+  departmentNameSnapshot       String?             @db.VarChar(100)
+  positionSnapshot             String?             @db.VarChar(100)
+  entryDateSnapshot            DateTime?
+  bankNameSnapshot             String?             @db.VarChar(100)
+  bankCardNoSnapshot           String?             @db.VarChar(100)
+  remarkSnapshot               String?
+  actualAttendanceDays         Decimal?            @db.Decimal(8, 3)
+  absenceDays                  Decimal?            @db.Decimal(8, 3)
+  grossBaseSalary              Decimal?            @db.Decimal(12, 2)
+  grossPerformance             Decimal?            @db.Decimal(12, 2)
+  grossCommission              Decimal?            @db.Decimal(12, 2)
+  grossOther                   Decimal?            @db.Decimal(12, 2)
+  grossBonusYearEnd            Decimal?            @db.Decimal(12, 2)
+  grossTotal                   Decimal?            @db.Decimal(12, 2)
+  absenceDeductionAmount       Decimal?            @db.Decimal(12, 2)
+  lateDeductionAmount          Decimal?            @db.Decimal(12, 2)
+  adminDeductionAmount         Decimal?            @db.Decimal(12, 2)
+  socialSecurityPersonalAmount Decimal?            @db.Decimal(12, 2)
+  housingFundPersonalAmount    Decimal?            @db.Decimal(12, 2)
+  deductionOtherTotal          Decimal?            @db.Decimal(12, 2)
+  deductionTotal               Decimal?            @db.Decimal(12, 2)
+  socialSecurityCompanyAmount  Decimal?            @db.Decimal(12, 2)
+  housingFundCompanyAmount     Decimal?            @db.Decimal(12, 2)
+  companyBurdenTotal           Decimal?            @db.Decimal(12, 2)
+  netSalary                    Decimal?            @db.Decimal(12, 2)
+  totalLaborCost               Decimal?            @db.Decimal(12, 2)
+  sourceSheetName              String?             @db.VarChar(100)
+  sourceRowIndex               Int?
+  sourceRawJson                Json?
+  importBatchId                String?
+  createdAt                    DateTime            @default(now())
+  creatorEmployeeId            String?
+  updatedAt                    DateTime            @updatedAt
+  updaterEmployeeId            String?
+  deletedAt                    DateTime?
+  version                      Int                 @default(1)
+  payrollPeriod                PayrollPeriod       @relation(fields: [payrollPeriodId], references: [id], onDelete: Restrict)
+  employee                     Employee?           @relation("PayrollRecordEmployee", fields: [employeeId], references: [id])
+  department                   Department?         @relation(fields: [departmentId], references: [id])
+  importBatch                  PayrollImportBatch? @relation(fields: [importBatchId], references: [id])
+  creatorEmployee              Employee?           @relation("PayrollRecordCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee              Employee?           @relation("PayrollRecordUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+  financeLedgers               FinanceLedger[]     @relation("FinanceLedgerPayrollRecord")
+
+  @@index([payrollPeriodId])
+  @@index([employeeId])
+  @@index([departmentId])
+  @@index([importBatchId])
+  @@index([payrollPeriodId, deletedAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("payroll_records")
+  @@schema("public")
+}
+
+/// 跟进记录
+model KeepRecord {
+  id                 String           @id @default(uuid())
+  yccrmId            String?          @unique @db.VarChar(100)
+  customerId         String
+  contactId          String?
+  keepRecordType     String?          @db.VarChar(50)
+  keepRecordTime     DateTime?
+  keepRecordContent  String?
+  keepRecordStatus   String?          @db.VarChar(50)
+  signLocation       String?
+  signAddress        String?
+  attachments        Json?
+  chargerId          String?
+  intentTemperature  String?          @db.VarChar(20)
+  intentReasons      Json?
+  nextFollowUpAt     DateTime?        @db.Date
+  chargerName        String?          @db.VarChar(100)
+  charger            Employee?        @relation("KeepRecordCharger", fields: [chargerId], references: [id])
+  flowStatus         String?          @db.VarChar(50)
+  // 闭环来源：标记该跟进记录来源。manual(人工) / action_item(待办采纳) / dingtalk-sync 等
+  source             String?          @db.VarChar(50)
+  // 采纳来源的 SalesActionItem.id（采纳后误判一键撤销时反查）
+  sourceActionItemId String?
+  sourceActionItem   SalesActionItem? @relation("KeepRecordFromActionItem", fields: [sourceActionItemId], references: [id], onDelete: SetNull)
+  // 审计
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  deletedAt          DateTime?
+  version            Int              @default(1)
+  // 创建/修改人（yccrm 同步从 raw creator_id/changer_id 反查为 employee.id）
+  creatorEmployeeId  String?
+  updaterEmployeeId  String?
+  creator            Employee?        @relation("KeepRecordCreator", fields: [creatorEmployeeId], references: [id])
+  updater            Employee?        @relation("KeepRecordUpdater", fields: [updaterEmployeeId], references: [id])
+  // 关联
+  customer           Customer         @relation(fields: [customerId], references: [id])
+  contact            Contact?         @relation(fields: [contactId], references: [id])
+
+  @@index([customerId])
+  @@index([contactId])
+  @@index([chargerId])
+  @@index([keepRecordType])
+  @@index([keepRecordStatus])
+  @@index([keepRecordTime])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([chargerId, deletedAt, createdAt])
+  @@index([customerId, deletedAt, createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@index([source])
+  @@index([sourceActionItemId])
+  @@index([customerId, intentTemperature, keepRecordTime])
+  @@map("keep_records")
+  @@schema("public")
+}
+
+/// 拜访签到
+model VisitRecord {
+  id                String    @id @default(uuid())
+  yccrmId           String?   @unique @db.VarChar(100)
+  customerId        String
+  contactId         String?
+  visitType         String?   @db.VarChar(50)
+  content           String?
+  signInTime        DateTime?
+  signOutTime       DateTime?
+  signAddress       String?
+  /// 原始 GPS 坐标 "lng,lat"，前端反解 signAddress 时同步写入；用于高德地图跳转链接与未来距离分析
+  signLocation      String?
+  /// 拜访时长（单位：分钟）
+  duration          Int?
+  visitStatus       String?   @db.VarChar(50)
+  attachments       Json?
+  chargerId         String?
+  chargerName       String?   @db.VarChar(100)
+  charger           Employee? @relation("VisitRecordCharger", fields: [chargerId], references: [id])
+  flowStatus        String?   @db.VarChar(50)
+  // 审计
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+  version           Int       @default(1)
+  // 创建/修改人（yccrm 同步从 raw creator_id/changer_id 反查为 employee.id）
+  creatorEmployeeId String?
+  updaterEmployeeId String?
+  creator           Employee? @relation("VisitRecordCreator", fields: [creatorEmployeeId], references: [id])
+  updater           Employee? @relation("VisitRecordUpdater", fields: [updaterEmployeeId], references: [id])
+  // 关联
+  customer          Customer  @relation(fields: [customerId], references: [id])
+  contact           Contact?  @relation(fields: [contactId], references: [id])
+
+  @@index([customerId])
+  @@index([contactId])
+  @@index([chargerId])
+  @@index([visitType])
+  @@index([visitStatus])
+  @@index([signInTime])
+  @@index([signOutTime])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([chargerId, deletedAt, createdAt])
+  @@index([customerId, deletedAt, createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("visit_records")
+  @@schema("public")
+}
+
+/// 销售数据待办/作战项：夜间缺口侦探 + 晨间简报共用（销售数据闭环系统）
+/// 写入一律进此表人工采纳，绝不直接写 CRM（D1）。
+/// 进攻类(FOLLOW_UP_DUE/DEAL_COOLING/PAYMENT_SILENT/CUSTOMER_STALE)在工作台「今日作战」卡呈现；
+/// 防御类(GAP_HARD/GAP_SOFT/CONFLICT/FILL_CONFIRM)在「数据待办」卡呈现。
+model SalesActionItem {
+  id                 String       @id @default(uuid())
+  // 收件销售（强制 = 当前登录人，前端不可传；夜间 cron 以各销售 employeeId 写入）
+  employeeId         String
+  employee           Employee     @relation("SalesActionOwner", fields: [employeeId], references: [id], onDelete: Restrict)
+  // 进攻: FOLLOW_UP_DUE / DEAL_COOLING / PAYMENT_SILENT / CUSTOMER_STALE
+  // 防御: GAP_HARD / GAP_SOFT / CONFLICT / FILL_CONFIRM
+  category           String       @db.VarChar(24)
+  // 0-100，ORDER BY DESC（高=优先）；不截断数量（砍了条数上限）
+  priority           Int
+  // Opportunity / Customer / KeepRecord 等
+  refType            String?      @db.VarChar(30)
+  refId              String?
+  title              String       @db.VarChar(200)
+  // 「为什么提醒你」一句话，必须含具体数字
+  reason             String
+  suggestedAction    String?
+  // 采纳草稿：FILL_CONFIRM 须含 kind='keep_record' + matchMode='FULL_NAME_EXPLICIT'
+  // + matchedCustomerId + matchedFullName + evidenceMessageId + payload（见 shared types）
+  aiDraft            Json?        @db.JsonB
+  // 证据数组：dingtalk_msg(含 msgId) / doc / calendar 三来源（见 shared types）
+  evidence           Json?        @db.JsonB
+  // HIGH(硬缺口/高置信) / MEDIUM(软缺口)
+  confidence         String       @db.VarChar(10)
+  // category + refId 指纹；活跃唯一约束靠 raw migration 的 partial unique index（schema 不写 @@unique）
+  dedupKey           String       @db.VarChar(120)
+  // pending / adopted / done / ignored / snoozed / auto_expired
+  status             String       @default("pending") @db.VarChar(16)
+  // ignore 时必填(D7)；done 时记录实际处置结果
+  resolveNote        String?
+  // done 时必填：progressed / shelved / false_alarm / other
+  doneType           String?      @db.VarChar(16)
+  snoozeUntil        DateTime?
+  remindCount        Int          @default(0)
+  // 采纳后写入的 CRM 记录类型（撤销用），如 'keep_record'
+  resultType         String?      @db.VarChar(30)
+  resultId           String?
+  // 哪批夜间 run，回滚/排查用
+  sourceRunId        String?      @db.VarChar(64)
+  createdVia         String       @default("agent") @db.VarChar(40)
+  // 审计六件套（新约定，带 FK；参照 Notification）
+  createdAt          DateTime     @default(now())
+  creatorEmployeeId  String?
+  updatedAt          DateTime     @default(now()) @updatedAt
+  updaterEmployeeId  String?
+  resolvedAt         DateTime?
+  resolvedById       String?
+  deletedAt          DateTime?
+  version            Int          @default(1)
+  creatorEmployee    Employee?    @relation("SalesActionItemCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee    Employee?    @relation("SalesActionItemUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+  resolvedBy         Employee?    @relation("SalesActionItemResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  // 反向：采纳本待办生成的跟进记录
+  adoptedKeepRecords KeepRecord[] @relation("KeepRecordFromActionItem")
+
+  @@index([employeeId, status, priority])
+  @@index([sourceRunId])
+  @@index([dedupKey])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@index([resolvedById])
+  @@map("sales_action_items")
+  @@schema("public")
+}
+
+/// 官网留资导入幂等台账（纯机器台账，非业务操作界面）。
+/// 业务实体仍落 Customer / Contact / SalesActionItem；本表只防 collector 重试或并发重复建客户。
+model WebsiteLeadImport {
+  id           String    @id @default(uuid())
+  sourceId     String    @unique @db.VarChar(96)
+  phone        String    @db.VarChar(32)
+  status       String    @default("processing") @db.VarChar(16)
+  customerId   String?
+  actionItemId String?
+  sourceSite   String?   @db.VarChar(255)
+  sourcePath   String?   @db.VarChar(512)
+  placement    String?   @db.VarChar(120)
+  channel      String?   @db.VarChar(120)
+  payload      Json?     @db.JsonB
+  importedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+
+  @@index([phone])
+  @@index([customerId])
+  @@index([actionItemId])
+  @@index([status, createdAt])
+  @@map("website_lead_imports")
+  @@schema("public")
+}
+
+/// 夜间同步幂等台账（纯机器台账，非人工业务实体）：防夜间 cron 重试重复写。
+/// 参照 SEO 机器同步表风格：无人工创建/修改者，审计字段豁免创建人/更新人。
+model SyncDedupLedger {
+  id               String    @id @default(uuid())
+  // 哪批夜间 run
+  runId            String    @db.VarChar(64)
+  // 事实归属销售（客户负责人 employeeId）
+  sourceEmployeeId String
+  // 来源类型：dingtalk_msg / doc / calendar 等
+  sourceType       String    @db.VarChar(30)
+  // 来源消息/文档/日程 id（可空，部分来源无单条 id）
+  sourceMessageId  String?   @db.VarChar(128)
+  // sha1(customerId|chargerEmployeeId|factDate|normalize(factCoreText))
+  dedupKey         String    @unique @db.VarChar(120)
+  // seen / written / skipped
+  status           String    @default("seen") @db.VarChar(16)
+  // 该 dedupKey 首次/最近被看到的时刻（业务语义时间，事实去重用）
+  firstSeenAt      DateTime  @default(now())
+  lastSeenAt       DateTime  @default(now()) @updatedAt
+  // 审计（机器表：参照 SEO 同步表，仅时间/软删/版本，豁免创建人/更新人，见 check-audit-fields ALLOWLIST）
+  createdAt        DateTime  @default(now())
+  createdBy        String?
+  updatedAt        DateTime  @default(now()) @updatedAt
+  updatedBy        String?
+  deletedAt        DateTime?
+  version          Int       @default(1)
+
+  @@index([runId])
+  @@index([sourceEmployeeId])
+  @@map("sync_dedup_ledger")
+  @@schema("public")
+}
+
+/// CRM 产品
+model CrmProduct {
+  id                      String          @id @default(uuid())
+  yccrmId                 String?         @unique @db.VarChar(100)
+  productName             String          @db.VarChar(200)
+  productNumber           String?         @db.VarChar(50)
+  productTypes            String?         @db.VarChar(100)
+  productUnit             String?         @db.VarChar(50)
+  /// @precision Decimal
+  standardPrice           Decimal?        @db.Decimal(12, 2)
+  productStatus           String?         @db.VarChar(50)
+  remark                  String?
+  flowStatus              String?         @db.VarChar(50)
+  status                  String          @default("active") @db.VarChar(20)
+  /// 默认财务科目（绑定方案 v2.2）：新建 OrderProduct 时继承到 OrderProduct.financeSubjectId
+  defaultFinanceSubjectId String?
+  defaultFinanceSubject   FinanceSubject? @relation("CrmProductDefaultSubject", fields: [defaultFinanceSubjectId], references: [id], onDelete: SetNull)
+  /// 默认收款模式（绑定方案 v2.2）：direct / dingtalk_collect / pass_through
+  /// 例：钉钉一方品 defaultPaymentMode='dingtalk_collect'；定制/三方品='direct'
+  defaultPaymentMode      String          @default("direct") @db.VarChar(20)
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  deletedAt               DateTime?
+  version                 Int             @default(1)
+  // 创建/修改人（yccrm 同步从 raw creator_id/changer_id 反查为 employee.id）
+  creatorEmployeeId       String?
+  updaterEmployeeId       String?
+  creator                 Employee?       @relation("CrmProductCreator", fields: [creatorEmployeeId], references: [id])
+  updater                 Employee?       @relation("CrmProductUpdater", fields: [updaterEmployeeId], references: [id])
+
+  @@index([status])
+  @@index([productStatus])
+  @@index([productTypes])
+  @@index([productUnit])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([standardPrice])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@index([defaultFinanceSubjectId])
+  @@map("crm_products")
+  @@schema("public")
+}
+
+/// 商机产品明细（快照模式，不建立 CrmProduct 外键）
+model OpportunityProduct {
+  id                String      @id @default(uuid())
+  yccrmId           String?     @unique @db.VarChar(100)
+  opportunityId     String
+  productName       String      @db.VarChar(200)
+  productNumber     String?     @db.VarChar(50)
+  /// @precision Decimal
+  productPrice      Decimal?    @db.Decimal(12, 2)
+  /// @precision Decimal
+  quantity          Decimal?    @db.Decimal(12, 2)
+  /// @precision Decimal
+  unitPrice         Decimal?    @db.Decimal(12, 2)
+  /// @precision Decimal
+  discount          Decimal?    @db.Decimal(5, 2)
+  /// @precision Decimal
+  subtotalAmount    Decimal?    @db.Decimal(12, 2)
+  remark            String?
+  flowStatus        String?     @db.VarChar(50)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  deletedAt         DateTime?
+  version           Int         @default(1)
+  // 创建/修改人（yccrm 同步从 raw creator_id/changer_id 反查为 employee.id）
+  creatorEmployeeId String?
+  updaterEmployeeId String?
+  creator           Employee?   @relation("OpportunityProductCreator", fields: [creatorEmployeeId], references: [id])
+  updater           Employee?   @relation("OpportunityProductUpdater", fields: [updaterEmployeeId], references: [id])
+  // 关联
+  opportunity       Opportunity @relation(fields: [opportunityId], references: [id])
+
+  @@index([opportunityId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("opportunity_products")
+  @@schema("public")
+}
+
+/// 订单产品明细（快照模式，不建立 CrmProduct 外键）
+model OrderProduct {
+  id                  String          @id @default(uuid())
+  yccrmId             String?         @unique @db.VarChar(100)
+  saleOrderId         String
+  productName         String          @db.VarChar(200)
+  productNumber       String?         @db.VarChar(50)
+  /// @precision Decimal
+  productPrice        Decimal?        @db.Decimal(12, 2)
+  /// @precision Decimal
+  quantity            Decimal?        @db.Decimal(12, 2)
+  /// @precision Decimal
+  unitPrice           Decimal?        @db.Decimal(12, 2)
+  /// @precision Decimal
+  contractUnitPrice   Decimal?        @db.Decimal(12, 2)
+  /// @precision Decimal
+  discount            Decimal?        @db.Decimal(5, 2)
+  /// @precision Decimal
+  subtotalAmount      Decimal?        @db.Decimal(12, 2)
+  remark              String?
+  flowStatus          String?         @db.VarChar(50)
+  /// 产品行级财务科目（绑定方案 v2.2）：由 CrmProduct.defaultFinanceSubjectId 继承，可手工调整
+  financeSubjectId    String?
+  financeSubject      FinanceSubject? @relation("OrderProductFinanceSubject", fields: [financeSubjectId], references: [id], onDelete: SetNull)
+  /// 产品行级收款模式（绑定方案 v2.2）：direct / dingtalk_collect / pass_through / pass_through_cost
+  /// 由 CrmProduct.defaultPaymentMode 继承；同步钩子据此决定派生 ledger 与否
+  paymentMode         String          @default("direct") @db.VarChar(20)
+  /// 反向缓存（绑定方案 v2.2）：产品行级已回款金额
+  /// = Σ PaymentItem.amount where saleOrderProductId=this.id AND deletedAt IS NULL
+  ///   AND payment.flowStatus='approved' AND payment.legacyAdjustment=false
+  ///   AND payment.deletedAt IS NULL
+  /// 由 PaymentItem 增删改 + payment 撤回/软删 同事务刷新；watchdog cron 每天 03:00 对账
+  /// @precision Decimal
+  totalReceivedAmount Decimal         @default(0) @db.Decimal(12, 2)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  deletedAt           DateTime?
+  version             Int             @default(1)
+  // 创建/修改人（yccrm 同步从 raw creator_id/changer_id 反查为 employee.id）
+  creatorEmployeeId   String?
+  updaterEmployeeId   String?
+  creator             Employee?       @relation("OrderProductCreator", fields: [creatorEmployeeId], references: [id])
+  updater             Employee?       @relation("OrderProductUpdater", fields: [updaterEmployeeId], references: [id])
+  // 关联
+  saleOrder           SaleOrder       @relation(fields: [saleOrderId], references: [id])
+  /// 反向 1:N：所有指向本 OrderProduct 的 PaymentItem
+  paymentItems        PaymentItem[]
+
+  @@index([saleOrderId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@index([financeSubjectId])
+  @@index([paymentMode])
+  @@map("order_products")
+  @@schema("public")
+}
+
+/// CRM 日报
+model CrmWorkDaily {
+  id                    String    @id @default(uuid())
+  yccrmId               String?   @unique @db.VarChar(100)
+  reportDate            DateTime?
+  reportType            String?   @db.VarChar(50)
+  submitStatus          String?   @db.VarChar(50)
+  senderId              String?
+  senderName            String?   @db.VarChar(100)
+  sender                Employee? @relation("WorkDailySender", fields: [senderId], references: [id])
+  keyCustomerSummary    String?
+  tomorrowVisitPlan     String?
+  otherPlanArrangements String?
+  coordinationItems     String?
+  callsMadeCount        Int?
+  callsConnectedCount   Int?
+  callsOver30sCount     Int?
+  totalCallMinutes      Int?
+  visitCustomerCount    Int?
+  newCustomerCount      Int?
+  newContactMethodCount Int?
+  attachments           Json?
+  remark                String?
+  flowStatus            String?   @db.VarChar(50)
+  status                String    @default("active") @db.VarChar(20)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  deletedAt             DateTime?
+  version               Int       @default(1)
+  // 创建人：yccrm 日报 raw 中 creator_id 100% NULL，回退用 sender_id 作为创建人语义
+  // 修改人：yccrm 日报 raw 中 changer_id 也是 100% NULL（日报不可编辑），updaterEmployeeId 始终 NULL
+  creatorEmployeeId     String?
+  updaterEmployeeId     String?
+  creator               Employee? @relation("CrmWorkDailyCreator", fields: [creatorEmployeeId], references: [id])
+  updater               Employee? @relation("CrmWorkDailyUpdater", fields: [updaterEmployeeId], references: [id])
+
+  @@index([senderId])
+  @@index([status])
+  @@index([submitStatus])
+  @@index([reportType])
+  @@index([reportDate])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([senderId, deletedAt, createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("crm_work_dailies")
+  @@schema("public")
+}
+
+// ============ 项目管理模型 ============
+
+/// 项目
+model Project {
+  id                String             @id @default(uuid())
+  yunxiaoId         String?            @unique @db.VarChar(100)
+  name              String             @db.VarChar(200)
+  description       String?
+  status            String             @default("active") @db.VarChar(50)
+  logicalStatus     String?            @db.VarChar(50)
+  category          String?            @db.VarChar(100)
+  customerId        String?
+  opportunityId     String?            @unique
+  saleOrderId       String?            @unique
+  startDate         DateTime?
+  endDate           DateTime?
+  ownerId           String?
+  ownerName         String?            @db.VarChar(100)
+  owner             Employee?          @relation("ProjectOwner", fields: [ownerId], references: [id])
+  flowStatus        String?            @db.VarChar(50)
+  createdAt         DateTime           @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime           @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int                @default(1)
+  // 关联
+  customer          Customer?          @relation(fields: [customerId], references: [id])
+  opportunity       Opportunity?       @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  saleOrder         SaleOrder?         @relation("ProjectPrimarySaleOrder", fields: [saleOrderId], references: [id], onDelete: SetNull)
+  members           ProjectMember[]
+  saleOrders        ProjectSaleOrder[]
+  effortRecords     EffortRecord[]
+  tickets           ProjectTicket[]
+  creatorEmployee   Employee?          @relation("ProjectCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee   Employee?          @relation("ProjectUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([ownerId])
+  @@index([status])
+  @@index([category])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([ownerId, deletedAt, createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("projects")
+  @@schema("public")
+}
+
+/// 项目-合同订单关联（多对多）
+model ProjectSaleOrder {
+  id                String    @id @default(uuid())
+  projectId         String
+  saleOrderId       String
+  remark            String?
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  // 关联
+  project           Project   @relation(fields: [projectId], references: [id])
+  saleOrder         SaleOrder @relation(fields: [saleOrderId], references: [id])
+  creatorEmployee   Employee? @relation("ProjectSaleOrderCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+
+  @@unique([projectId, saleOrderId])
+  @@index([projectId])
+  @@index([saleOrderId])
+  @@index([creatorEmployeeId])
+  @@map("project_sale_orders")
+  @@schema("public")
+}
+
+/// 项目成员
+model ProjectMember {
+  id                String    @id @default(uuid())
+  yunxiaoId         String?   @unique @db.VarChar(100)
+  projectId         String
+  employeeId        String?
+  userName          String?   @db.VarChar(100)
+  email             String?   @db.VarChar(200)
+  role              String?   @db.VarChar(50)
+  isActive          Boolean   @default(true)
+  joinedAt          DateTime?
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+  // 关联
+  project           Project   @relation(fields: [projectId], references: [id])
+  employee          Employee? @relation("MemberEmployee", fields: [employeeId], references: [id])
+  creatorEmployee   Employee? @relation("ProjectMemberCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee   Employee? @relation("ProjectMemberUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@unique([projectId, employeeId])
+  @@index([projectId])
+  @@index([employeeId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("project_members")
+  @@schema("public")
+}
+
+/// 工时记录
+model EffortRecord {
+  id                String    @id @default(uuid())
+  yunxiaoId         String?   @unique @db.VarChar(100)
+  projectId         String
+  /// @precision Decimal
+  actualTime        Decimal   @db.Decimal(10, 2)
+  description       String?
+  workType          String?   @db.VarChar(100)
+  workDate          DateTime? @db.Date
+  /// 记录类型：ACTUAL=实际工时，PLAN=工作计划
+  recordType        String    @default("ACTUAL") @db.VarChar(20)
+  ownerId           String?
+  ownerName         String?   @db.VarChar(100)
+  owner             Employee? @relation("EffortOwner", fields: [ownerId], references: [id])
+  startDate         DateTime?
+  endDate           DateTime?
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+  // 关联
+  project           Project   @relation(fields: [projectId], references: [id])
+  creatorEmployee   Employee? @relation("EffortRecordCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee   Employee? @relation("EffortRecordUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([ownerId])
+  @@index([workDate])
+  @@index([ownerId, workDate])
+  @@index([ownerId, workDate, recordType])
+  @@index([workType])
+  @@index([recordType])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([actualTime])
+  @@index([ownerId, deletedAt, createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("effort_records")
+  @@schema("public")
+}
+
+/// 项目工单（需求/变更/运维/Bug 等统一入口）
+model ProjectTicket {
+  id       String @id @default(uuid())
+  ticketNo String @unique @db.VarChar(30)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id])
+
+  title       String @db.VarChar(200)
+  description String
+
+  ticketType String @db.VarChar(30)
+  priority   String @db.VarChar(20)
+  status     String @default("PENDING") @db.VarChar(30)
+
+  dispatcherId String
+  dispatcher   Employee @relation("TicketDispatcher", fields: [dispatcherId], references: [id])
+
+  assigneeId String
+  assignee   Employee @relation("TicketAssignee", fields: [assigneeId], references: [id])
+
+  dueDate     DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  closedAt    DateTime?
+  cancelledAt DateTime?
+
+  completionNote String?
+  closeNote      String?
+  cancelReason   String?
+
+  attachments Json?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+  creatorEmployeeId String?
+  updaterEmployeeId String?
+  version           Int       @default(1)
+
+  creatorEmployee Employee? @relation("ProjectTicketCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee? @relation("ProjectTicketUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([dispatcherId])
+  @@index([assigneeId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([dueDate])
+  @@index([ticketType])
+  @@index([priority])
+  @@index([updatedAt])
+  @@index([assigneeId, deletedAt, createdAt])
+  @@index([dispatcherId, deletedAt, createdAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("project_tickets")
+  @@schema("public")
+}
+
+// ============ 钉钉同步模型 ============
+// 注：DingtalkLog 已扩展为「同步 + 本地编辑」混合模型——
+// source='dingtalk' 的记录由 dingtalk-sync 自动写入；source='local' 的为用户本地新增。
+// 同步逻辑（apps/server/src/modules/dingtalk-sync/helpers/log-sync.helper.ts）upsert 时
+// 会跳过 source='local' 与 isLocallyEdited=true 的记录，避免覆盖用户编辑。
+
+/// 钉钉工作日志（同步自钉钉 + 本地新增/编辑）
+model DingtalkLog {
+  reportId        String    @id @db.VarChar(50)
+  templateName    String?   @db.VarChar(50)
+  creatorId       String?   @db.VarChar(50)
+  creatorName     String?   @db.VarChar(100)
+  deptName        String?   @db.VarChar(100)
+  /// 钉钉同步过来的纯文本正文（含 \r\n 换行），与 contentsJson 二选一显示
+  contents        String?
+  /// 结构化正文 [{key, value}]，本地新增/编辑时主要使用；展示时若存在则按段渲染
+  contentsJson    Json?
+  createTime      DateTime?
+  syncedAt        DateTime  @default(now())
+  /// 来源：dingtalk=同步自钉钉；local=本地新增
+  source          String    @default("dingtalk") @db.VarChar(20)
+  /// 是否已被本地编辑过（同步时不再覆盖）
+  isLocallyEdited Boolean   @default(false)
+  updatedAt       DateTime  @default(now()) @updatedAt
+
+  @@index([creatorId])
+  @@index([createTime])
+  @@index([syncedAt])
+  @@index([source])
+  @@map("dingtalk_logs")
+  @@schema("public")
+}
+
+/// 钉钉日程事件（同步自钉钉，只读）
+model DingtalkCalendarEvent {
+  eventId     String    @id @db.VarChar(100)
+  title       String?   @db.VarChar(500)
+  description String?
+  startTime   DateTime?
+  endTime     DateTime?
+  location    String?   @db.VarChar(200)
+  creator     String?   @db.VarChar(100)
+  attendees   Json?
+  syncedAt    DateTime  @default(now())
+
+  @@map("dingtalk_calendar_events")
+  @@schema("public")
+}
+
+/// 离职人员（同步自钉钉，只读）
+model EmployeeLeave {
+  id             String    @id @default(uuid())
+  dingtalkUserId String    @db.VarChar(50)
+  name           String    @db.VarChar(100)
+  mobile         String?   @db.VarChar(20)
+  leaveTime      DateTime?
+  leaveReason    String?   @db.VarChar(500)
+  syncedAt       DateTime  @default(now())
+
+  @@unique([dingtalkUserId, leaveTime])
+  @@index([leaveTime])
+  @@index([syncedAt])
+  @@map("employee_leaves")
+  @@schema("public")
+}
+
+// ============ 审批流程模块 ============
+
+/// 审批流程定义
+model ApprovalFlow {
+  id                String    @id @default(uuid())
+  groupId           String    @db.VarChar(50)
+  code              String    @db.VarChar(50)
+  name              String    @db.VarChar(100)
+  eventType         String    @db.VarChar(50)
+  description       String?
+  version           Int       @default(1)
+  status            String    @default("active") @db.VarChar(20)
+  copyToIds         String[]  @default([])
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+
+  nodes           ApprovalFlowNode[]
+  instances       ApprovalInstance[]
+  creatorEmployee Employee?          @relation("ApprovalFlowCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee?          @relation("ApprovalFlowUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([groupId, version])
+  @@index([eventType, status])
+  @@index([status])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("approval_flows")
+  @@schema("public")
+}
+
+/// 审批流程节点
+model ApprovalFlowNode {
+  id                String    @id @default(uuid())
+  flowId            String
+  nodeOrder         Int
+  nodeName          String    @db.VarChar(100)
+  approverType      String    @db.VarChar(20)
+  approverUserIds   String[]  @default([])
+  approverRoleId    String?
+  managerLevel      Int       @default(1)
+  multiType         String    @default("or") @db.VarChar(20)
+  timeoutHours      Int?
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  flow            ApprovalFlow @relation(fields: [flowId], references: [id])
+  creatorEmployee Employee?    @relation("ApprovalFlowNodeCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee?    @relation("ApprovalFlowNodeUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@unique([flowId, nodeOrder])
+  @@index([flowId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("approval_flow_nodes")
+  @@schema("public")
+}
+
+/// 审批实例
+model ApprovalInstance {
+  id                String    @id @default(uuid())
+  code              String    @unique @db.VarChar(50)
+  flowId            String
+  flowVersion       Int
+  eventType         String    @db.VarChar(50)
+  formId            String
+  formCode          String    @db.VarChar(50)
+  /// 提交时业务目标的精确 version；legacy NULL 终态操作必须 fail-closed。
+  targetVersion     Int?
+  title             String    @db.VarChar(200)
+  status            String    @default("pending") @db.VarChar(20)
+  currentNode       Int       @default(1)
+  totalNodes        Int
+  initiatorId       String
+  initiatorName     String    @db.VarChar(50)
+  copyToIds         String[]  @default([])
+  completedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  flow            ApprovalFlow           @relation(fields: [flowId], references: [id])
+  tasks           ApprovalTask[]
+  records         ApprovalRecord[]
+  changeRequest   ApprovalChangeRequest? @relation("ApprovalChangeRequestInstance")
+  creatorEmployee Employee?              @relation("ApprovalInstanceCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee?              @relation("ApprovalInstanceUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  // 历史曾用 @@unique([eventType, formId])（全状态硬唯一），导致驳回/撤回后再次提单
+  // 撞 DB 层 P2002（哪怕老实例已经 rejected/withdrawn）。2026-06 改造为 partial unique
+  // (WHERE status='pending')，只阻止"同一表单同时有两个 pending 实例"。Prisma schema
+  // 无法表达 partial unique，partial 索引由 migration 20260615231500_approval_instance_partial_unique
+  // 直接 raw SQL 创建（CREATE UNIQUE INDEX ... WHERE status='pending'）。
+  // 应用层 createApprovalInstance 内 status='pending' 的 findFirst 守卫仍保留，作为双保险。
+  @@index([eventType, formId])
+  @@index([flowId])
+  @@index([initiatorId])
+  @@index([status])
+  @@index([status, createdAt])
+  @@index([initiatorId, status])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("approval_instances")
+  @@schema("public")
+}
+
+/// 审批变更申请：已通过单据的修改先进入此表，审批通过后再应用到业务表
+/// 同一 (targetType,targetId) 最多一条 status='pending' 且 deletedAt IS NULL 的记录，
+/// 由 contract-migrations/20260824115000_approval_change_request_pending_unique 的 partial UNIQUE 强制；
+/// Prisma schema 当前不能表达 partial UNIQUE，禁止用普通 @@unique 替代。
+model ApprovalChangeRequest {
+  id                 String    @id @default(uuid())
+  eventType          String    @db.VarChar(50)
+  targetType         String    @db.VarChar(50)
+  targetId           String
+  targetCode         String?   @db.VarChar(100)
+  title              String    @db.VarChar(200)
+  baseVersion        Int
+  patch              Json
+  beforeSnapshot     Json
+  afterSnapshot      Json
+  status             String    @default("pending") @db.VarChar(20)
+  approvalInstanceId String?   @unique
+  appliedAt          DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
+  version            Int       @default(1)
+  creatorEmployeeId  String?
+  updaterEmployeeId  String?
+
+  approvalInstance ApprovalInstance? @relation("ApprovalChangeRequestInstance", fields: [approvalInstanceId], references: [id], onDelete: SetNull)
+  creatorEmployee  Employee?         @relation("ApprovalChangeRequestCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee  Employee?         @relation("ApprovalChangeRequestUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([targetType, targetId, status])
+  @@index([eventType, status])
+  @@index([approvalInstanceId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("approval_change_requests")
+  @@schema("public")
+}
+
+/// 审批任务
+model ApprovalTask {
+  id                         String    @id @default(uuid())
+  instanceId                 String
+  nodeOrder                  Int
+  nodeName                   String    @db.VarChar(100)
+  approverId                 String
+  approverName               String    @db.VarChar(50)
+  approverType               String    @db.VarChar(20)
+  sequence                   Int       @default(0)
+  status                     String    @default("pending") @db.VarChar(20)
+  comment                    String?
+  actionTime                 DateTime?
+  dingtalkTodoTaskId         String?   @db.VarChar(100)
+  dingtalkTodoSourceId       String?   @unique @db.VarChar(120)
+  dingtalkTodoCreatorUnionId String?   @db.VarChar(50)
+  dingtalkTodoCreatedAt      DateTime?
+  dingtalkTodoDoneAt         DateTime?
+  createdAt                  DateTime  @default(now())
+  creatorEmployeeId          String?
+  updatedAt                  DateTime  @updatedAt
+  updaterEmployeeId          String?
+  deletedAt                  DateTime?
+  version                    Int       @default(1)
+
+  instance        ApprovalInstance @relation(fields: [instanceId], references: [id])
+  creatorEmployee Employee?        @relation("ApprovalTaskCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee?        @relation("ApprovalTaskUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@unique([instanceId, nodeOrder, approverId])
+  @@index([instanceId])
+  @@index([approverId])
+  @@index([dingtalkTodoTaskId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("approval_tasks")
+  @@schema("public")
+}
+
+/// 审批记录（不可修改的审计日志）
+model ApprovalRecord {
+  id           String   @id @default(uuid())
+  instanceId   String
+  nodeOrder    Int
+  nodeName     String?  @db.VarChar(100)
+  operatorId   String
+  operatorName String   @db.VarChar(50)
+  action       String   @db.VarChar(20)
+  result       String?  @db.VarChar(20)
+  comment      String?
+  createdAt    DateTime @default(now())
+
+  instance ApprovalInstance @relation(fields: [instanceId], references: [id])
+
+  @@index([instanceId])
+  @@map("approval_records")
+  @@schema("public")
+}
+
+/// 审批业务通知事务型发件箱：与业务终态同事务入队，外部发送失败可重试。
+model ApprovalNotificationOutbox {
+  id                  String    @id @default(uuid())
+  dedupKey            String    @unique @db.VarChar(160)
+  eventType           String    @db.VarChar(50)
+  recipientEmployeeId String
+  payload             Json
+  status              String    @default("pending") @db.VarChar(20)
+  attemptCount        Int       @default(0)
+  nextAttemptAt       DateTime  @default(now())
+  lastError           String?
+  sentAt              DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([recipientEmployeeId])
+  @@map("approval_notification_outbox")
+  @@schema("public")
+}
+
+// ============ 同步状态模型 ============
+
+/// 同步状态记录（用于增量同步游标管理）
+model SyncState {
+  id         String   @id @default(uuid())
+  source     String   @db.VarChar(100)
+  entityName String   @db.VarChar(200)
+  stateKey   String   @default("default") @db.VarChar(200)
+  stateValue String
+  updatedAt  DateTime @updatedAt
+
+  @@unique([source, entityName, stateKey])
+  @@map("sync_states")
+  @@schema("public")
+}
+
+// ============ 健康中心表（应用层已于 2026-09-14 移除） ============
+// 下列模型仅保留以满足 expand-only：prisma migrate 禁止 DROP TABLE。
+// 表的物理删除必须走独立 contract-migrations 批次，不得写入 prisma/migrations。
+// ownerId 为纯 String（Employee.id 或 User.id，不建外键以避免 Employee 反向关系膨胀）。
+
+/// 食物库（公司共享，全 ADMIN 读写）
+model DietFood {
+  id              String   @id @default(uuid())
+  name            String   @db.VarChar(100)
+  category        String   @db.VarChar(50)
+  brand           String?  @db.VarChar(80)
+  skuRef          String?  @db.VarChar(200)
+  purchaseUrl     String?  @db.VarChar(500)
+  /// @precision Decimal
+  kcalPer100g     Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  proteinPer100g  Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  carbsPer100g    Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  fatPer100g      Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  fiberPer100g    Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  sodiumMgPer100g Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  defaultServingG Decimal? @db.Decimal(8, 2)
+  unit            String   @default("g") @db.VarChar(20)
+  /// @precision Decimal
+  unitPrice       Decimal? @db.Decimal(10, 2)
+  /// @precision Decimal
+  unitSize        Decimal? @db.Decimal(10, 2)
+  pickingNotes    String?
+  phytochemicals  String?
+  tags            String?  @db.VarChar(500)
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  creatorEmployee Employee? @relation("DietFoodCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee? @relation("DietFoodUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([category, deletedAt])
+  @@index([isActive, deletedAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("diet_foods")
+  @@schema("public")
+}
+
+/// 补剂库（公司共享）
+model DietSupplement {
+  id             String   @id @default(uuid())
+  name           String   @db.VarChar(100)
+  category       String   @db.VarChar(50)
+  brand          String?  @db.VarChar(80)
+  skuRef         String?  @db.VarChar(200)
+  purchaseUrl    String?  @db.VarChar(500)
+  dosagePerPill  String?  @db.VarChar(100)
+  /// @precision Decimal
+  dailyDoseCount Decimal? @db.Decimal(6, 2)
+  dailyDoseDesc  String?  @db.VarChar(200)
+  timing         String?  @db.VarChar(50)
+  packSize       Int?
+  /// @precision Decimal
+  packPrice      Decimal? @db.Decimal(10, 2)
+  stockCount     Int      @default(0)
+  stockWarnDays  Int      @default(7)
+  problemSolved  String?
+  notes          String?
+  isActive       Boolean  @default(true)
+  sortOrder      Int      @default(0)
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  creatorEmployee Employee? @relation("DietSupplementCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee? @relation("DietSupplementUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([category, deletedAt])
+  @@index([isActive, deletedAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("diet_supplements")
+  @@schema("public")
+}
+
+/// 饮食计划（个人，按 ownerId 隔离）
+model DietPlan {
+  id            String   @id @default(uuid())
+  ownerId       String
+  ownerName     String?  @db.VarChar(50)
+  name          String   @db.VarChar(100)
+  planType      String   @db.VarChar(50)
+  description   String?
+  /// @precision Decimal
+  targetKcal    Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  targetProtein Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  targetCarbs   Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  targetFat     Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  targetFiber   Decimal? @db.Decimal(8, 2)
+  isActive      Boolean  @default(true)
+  isDefault     Boolean  @default(false)
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  slots           DietMealSlot[]
+  supplements     DietPlanSupplement[]
+  dailyLogs       DietDailyLog[]
+  creatorEmployee Employee?            @relation("DietPlanCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee?            @relation("DietPlanUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId, deletedAt])
+  @@index([ownerId, isActive, deletedAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("diet_plans")
+  @@schema("public")
+}
+
+/// 餐单槽位（仅指向食物，包含营养 6 件套快照）
+model DietMealSlot {
+  id                  String   @id @default(uuid())
+  planId              String
+  plan                DietPlan @relation(fields: [planId], references: [id])
+  mealType            String   @db.VarChar(30)
+  sortOrder           Int      @default(0)
+  foodId              String
+  foodNameSnapshot    String?  @db.VarChar(100)
+  /// @precision Decimal
+  kcalPer100gSnap     Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  proteinPer100gSnap  Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  carbsPer100gSnap    Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  fatPer100gSnap      Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  fiberPer100gSnap    Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  sodiumMgPer100gSnap Decimal? @db.Decimal(8, 2)
+  /// @precision Decimal
+  quantity            Decimal? @db.Decimal(8, 2)
+  unit                String?  @db.VarChar(20)
+  notes               String?  @db.VarChar(500)
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  creatorEmployee Employee? @relation("DietMealSlotCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee? @relation("DietMealSlotUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([planId, mealType, sortOrder])
+  @@index([foodId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("diet_meal_slots")
+  @@schema("public")
+}
+
+/// 计划补剂安排（仅指向补剂）
+model DietPlanSupplement {
+  id                     String   @id @default(uuid())
+  planId                 String
+  plan                   DietPlan @relation(fields: [planId], references: [id])
+  supplementId           String
+  supplementNameSnapshot String?  @db.VarChar(100)
+  timing                 String?  @db.VarChar(50)
+  /// @precision Decimal
+  doseCount              Decimal? @db.Decimal(6, 2)
+  sortOrder              Int      @default(0)
+  notes                  String?  @db.VarChar(500)
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  creatorEmployee Employee? @relation("DietPlanSupplementCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee? @relation("DietPlanSupplementUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([planId, sortOrder])
+  @@index([supplementId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("diet_plan_supplements")
+  @@schema("public")
+}
+
+/// 每日打卡主表（个人，唯一 ownerId+logDate）
+model DietDailyLog {
+  id               String    @id @default(uuid())
+  ownerId          String
+  ownerName        String?   @db.VarChar(50)
+  logDate          DateTime  @db.Date
+  planId           String?
+  plan             DietPlan? @relation(fields: [planId], references: [id])
+  planNameSnapshot String?   @db.VarChar(100)
+  isTrainingDay    Boolean   @default(false)
+  /// @precision Decimal
+  actualKcal       Decimal?  @db.Decimal(8, 2)
+  /// @precision Decimal
+  actualProtein    Decimal?  @db.Decimal(8, 2)
+  /// @precision Decimal
+  actualCarbs      Decimal?  @db.Decimal(8, 2)
+  /// @precision Decimal
+  actualFat        Decimal?  @db.Decimal(8, 2)
+  /// @precision Decimal
+  actualSodium     Decimal?  @db.Decimal(8, 2)
+  /// @precision Decimal
+  complianceScore  Decimal?  @db.Decimal(5, 2)
+  bottomLineMet    Int       @default(0)
+  notes            String?
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  mealEntries       DietDailyMealEntry[]
+  supplementEntries DietDailySupplementEntry[]
+  creatorEmployee   Employee?                  @relation("DietDailyLogCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee   Employee?                  @relation("DietDailyLogUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@unique([ownerId, logDate])
+  @@index([ownerId, logDate, deletedAt])
+  @@index([planId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("diet_daily_logs")
+  @@schema("public")
+}
+
+/// 打卡每餐明细（包含营养 6 件套快照）
+model DietDailyMealEntry {
+  id                  String       @id @default(uuid())
+  dailyLogId          String
+  dailyLog            DietDailyLog @relation(fields: [dailyLogId], references: [id])
+  mealType            String       @db.VarChar(30)
+  sortOrder           Int          @default(0)
+  foodId              String
+  foodNameSnapshot    String?      @db.VarChar(100)
+  /// @precision Decimal
+  kcalPer100gSnap     Decimal?     @db.Decimal(8, 2)
+  /// @precision Decimal
+  proteinPer100gSnap  Decimal?     @db.Decimal(8, 2)
+  /// @precision Decimal
+  carbsPer100gSnap    Decimal?     @db.Decimal(8, 2)
+  /// @precision Decimal
+  fatPer100gSnap      Decimal?     @db.Decimal(8, 2)
+  /// @precision Decimal
+  fiberPer100gSnap    Decimal?     @db.Decimal(8, 2)
+  /// @precision Decimal
+  sodiumMgPer100gSnap Decimal?     @db.Decimal(8, 2)
+  /// @precision Decimal
+  quantity            Decimal?     @db.Decimal(8, 2)
+  unit                String?      @db.VarChar(20)
+  consumed            Boolean
+  note                String?      @db.VarChar(500)
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  creatorEmployee Employee? @relation("DietDailyMealEntryCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee? @relation("DietDailyMealEntryUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([dailyLogId, mealType, sortOrder])
+  @@index([foodId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("diet_daily_meal_entries")
+  @@schema("public")
+}
+
+/// 打卡补剂明细
+model DietDailySupplementEntry {
+  id                     String       @id @default(uuid())
+  dailyLogId             String
+  dailyLog               DietDailyLog @relation(fields: [dailyLogId], references: [id])
+  supplementId           String
+  supplementNameSnapshot String?      @db.VarChar(100)
+  timing                 String?      @db.VarChar(50)
+  /// @precision Decimal
+  doseCount              Decimal?     @db.Decimal(6, 2)
+  consumed               Boolean
+  note                   String?      @db.VarChar(500)
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  creatorEmployee Employee? @relation("DietDailySupplementEntryCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee? @relation("DietDailySupplementEntryUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([dailyLogId])
+  @@index([supplementId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("diet_daily_supplement_entries")
+  @@schema("public")
+}
+
+/// 喝水打卡（敲门砖）
+model DietWaterLog {
+  id         String   @id @default(uuid())
+  ownerId    String
+  ownerName  String?  @db.VarChar(50)
+  logDate    DateTime @db.Date
+  recordedAt DateTime
+  /// @precision Decimal
+  amountMl   Decimal  @db.Decimal(8, 2)
+  source     String   @default("water") @db.VarChar(30)
+  notes      String?  @db.VarChar(500)
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  creatorEmployee Employee? @relation("DietWaterLogCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee? @relation("DietWaterLogUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId, logDate, deletedAt])
+  @@index([ownerId, recordedAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("diet_water_logs")
+  @@schema("public")
+}
+
+/// 主观体感打卡
+model DietSubjectiveLog {
+  id                String   @id @default(uuid())
+  ownerId           String
+  ownerName         String?  @db.VarChar(50)
+  logDate           DateTime @db.Date
+  energyLevel       Int?
+  sleepQualityLevel Int?
+  bloating          Boolean  @default(false)
+  edema             Boolean  @default(false)
+  cramps            Boolean  @default(false)
+  stoolQuality      Int?
+  notes             String?
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  creatorEmployee Employee? @relation("DietSubjectiveLogCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee? @relation("DietSubjectiveLogUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@unique([ownerId, logDate])
+  @@index([ownerId, logDate, deletedAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("diet_subjective_logs")
+  @@schema("public")
+}
+
+/// 身体数据（独立模型，未来可承接血脂血糖手环数据）
+model BodyMetric {
+  id           String   @id @default(uuid())
+  ownerId      String
+  ownerName    String?  @db.VarChar(50)
+  measuredAt   DateTime
+  measuredDate DateTime @db.Date
+  source       String   @default("manual") @db.VarChar(30)
+  /// @precision Decimal
+  weightKg     Decimal? @db.Decimal(6, 2)
+  /// @precision Decimal
+  bodyFatRate  Decimal? @db.Decimal(5, 2)
+  /// @precision Decimal
+  muscleMassKg Decimal? @db.Decimal(6, 2)
+  /// @precision Decimal
+  visceralFat  Decimal? @db.Decimal(5, 2)
+  /// @precision Decimal
+  waistCm      Decimal? @db.Decimal(5, 2)
+  /// @precision Decimal
+  hipCm        Decimal? @db.Decimal(5, 2)
+  /// @precision Decimal
+  bmr          Decimal? @db.Decimal(8, 2)
+  rawData      Json?
+  notes        String?
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  creatorEmployee Employee? @relation("BodyMetricCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee? @relation("BodyMetricUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId, measuredDate, deletedAt])
+  @@index([ownerId, source])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("body_metrics")
+  @@schema("public")
+}
+
+/// 采购清单项（个人）
+model DietPurchaseItem {
+  id                     String    @id @default(uuid())
+  ownerId                String
+  ownerName              String?   @db.VarChar(50)
+  planPeriod             String?   @db.VarChar(30)
+  foodId                 String?
+  foodNameSnapshot       String?   @db.VarChar(100)
+  supplementId           String?
+  supplementNameSnapshot String?   @db.VarChar(100)
+  /// @precision Decimal
+  quantity               Decimal?  @db.Decimal(10, 2)
+  unit                   String?   @db.VarChar(20)
+  /// @precision Decimal
+  estimatedPrice         Decimal?  @db.Decimal(10, 2)
+  /// @precision Decimal
+  actualPrice            Decimal?  @db.Decimal(10, 2)
+  platform               String?   @db.VarChar(50)
+  status                 String    @default("planned") @db.VarChar(30)
+  orderedAt              DateTime?
+  receivedAt             DateTime?
+  notes                  String?
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  creatorEmployee Employee? @relation("DietPurchaseItemCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee? @relation("DietPurchaseItemUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId, status, deletedAt])
+  @@index([ownerId, planPeriod])
+  @@index([foodId])
+  @@index([supplementId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("diet_purchase_items")
+  @@schema("public")
+}
+
+// ============ 训练记录表（应用层已于 2026-09-14 移除） ============
+// 同样只保留 schema 以满足 expand-only；DROP 走独立 contract-migrations。
+
+/// 动作字典（预置 + 用户可加私有动作）
+model ExerciseLibrary {
+  id     String  @id @default(uuid())
+  /// 英文唯一 slug，预置动作稳定不变（如 hack-squat / arnold-press）
+  slug   String  @unique @db.VarChar(80)
+  name   String  @db.VarChar(60)
+  nameEn String? @db.VarChar(60)
+
+  /// 主肌群（chest / back_lats / back_upper / shoulders / arms_biceps / arms_triceps / legs_quads / legs_hamstrings / legs_glutes / core / cardio）
+  primaryMuscleGroup    String   @db.VarChar(30)
+  secondaryMuscleGroups String[] @default([]) @db.VarChar(30)
+  /// 器械（barbell / dumbbell / machine / cable / smith / bodyweight / band / kettlebell / bench / outdoor）
+  equipment             String   @db.VarChar(30)
+  /// compound / isolation / cardio
+  movementType          String   @db.VarChar(20)
+  /// push / pull / squat / hinge / lunge / carry / rotation / anti_rotation / cardio / isolation
+  mechanics             String   @db.VarChar(20)
+  isUnilateral          Boolean  @default(false)
+
+  /// 是否系统预置：true = seed 不可编辑/删除；false = 用户加的私有动作
+  isPreset Boolean  @default(false)
+  /// 系统 seed 为 null；用户加的填 user.employeeId
+  ownerId  String?
+  tags     String[] @default([]) @db.VarChar(30)
+  notes    String?
+  isActive Boolean  @default(true)
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  creatorEmployee  Employee?         @relation("ExerciseLibraryCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee  Employee?         @relation("ExerciseLibraryUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+  workoutExercises WorkoutExercise[]
+
+  @@index([primaryMuscleGroup, isActive, deletedAt])
+  @@index([equipment])
+  @@index([ownerId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("exercise_library")
+  @@schema("public")
+}
+
+/// 训练 Session 主表（一次训练 = 一条）
+model WorkoutSession {
+  id        String  @id @default(uuid())
+  ownerId   String
+  ownerName String? @db.VarChar(50)
+
+  sessionDate DateTime  @db.Date
+  startedAt   DateTime
+  endedAt     DateTime?
+  /// 训练时长（分钟）；优先由 endedAt - startedAt 计算，允许手填覆盖
+  durationMin Int?
+
+  /// 训练类型：coach（教练课）/ home（家练）/ gym_self（自训）/ zone2（有氧）
+  sessionType String  @default("coach") @db.VarChar(20)
+  coachName   String? @db.VarChar(30)
+  location    String? @db.VarChar(50)
+
+  /// 录入时的体重快照，抓 BodyMetric 最新一条默认填，可手改
+  /// @precision Decimal
+  bodyweightKg Decimal? @db.Decimal(5, 2)
+  /// 整场 RPE 0-10
+  /// @precision Decimal
+  sessionRpe   Decimal? @db.Decimal(3, 1)
+  /// good / normal / off
+  feelingTag   String?  @db.VarChar(20)
+
+  /// 衍生汇总（service 在事务里算好回填）
+  totalSets     Int     @default(0)
+  /// @precision Decimal
+  totalVolumeKg Decimal @default(0) @db.Decimal(10, 2)
+  workMinutes   Int?
+  /// 本次打破的 PR 数（service 计算）
+  prCount       Int     @default(0)
+
+  notes String?
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  exercises       WorkoutExercise[]
+  creatorEmployee Employee?         @relation("WorkoutSessionCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee?         @relation("WorkoutSessionUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId, sessionDate, deletedAt])
+  @@index([ownerId, sessionType])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("workout_sessions")
+  @@schema("public")
+}
+
+/// 训练动作子表（一个 Session 包含 N 个动作，每个动作有快照字段）
+model WorkoutExercise {
+  id         String  @id @default(uuid())
+  sessionId  String
+  /// 可空：支持 ad-hoc 动作不入字典
+  exerciseId String?
+  sortOrder  Int     @default(0)
+
+  /// 快照（从字典 freeze，即使字典改/删也不影响历史）
+  nameSnapshot               String  @db.VarChar(60)
+  primaryMuscleGroupSnapshot String  @db.VarChar(30)
+  equipmentSnapshot          String  @db.VarChar(30)
+  isUnilateralSnapshot       Boolean @default(false)
+
+  notes String?
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  session         WorkoutSession   @relation(fields: [sessionId], references: [id])
+  exercise        ExerciseLibrary? @relation(fields: [exerciseId], references: [id])
+  sets            WorkoutSet[]
+  creatorEmployee Employee?        @relation("WorkoutExerciseCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee?        @relation("WorkoutExerciseUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId, sortOrder])
+  @@index([exerciseId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("workout_exercises")
+  @@schema("public")
+}
+
+/// 训练组孙表（一个动作包含 N 组；30 行/session 是典型规模）
+model WorkoutSet {
+  id                String @id @default(uuid())
+  workoutExerciseId String
+  /// 反范式：加速跨 session 的 PR 时间线查询
+  sessionId         String
+  setNumber         Int
+
+  /// 自重动作可空
+  /// @precision Decimal
+  weightKg Decimal? @db.Decimal(6, 2)
+  reps     Int?
+  /// 时间动作（plank/farmer carry）用
+  timeSec  Int?
+  /// 0-10
+  /// @precision Decimal
+  rpe      Decimal? @db.Decimal(3, 1)
+  restSec  Int?
+
+  isWarmup    Boolean @default(false)
+  isCompleted Boolean @default(true)
+  /// 写入时由 service 计算（Epley e1RM 破历史 max 则为 true）
+  isPr        Boolean @default(false)
+
+  notes String?
+
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  workoutExercise WorkoutExercise @relation(fields: [workoutExerciseId], references: [id])
+  creatorEmployee Employee?       @relation("WorkoutSetCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee?       @relation("WorkoutSetUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([workoutExerciseId, setNumber])
+  @@index([sessionId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("workout_sets")
+  @@schema("public")
+}
+
+// ============ 运维 / 云成本（只 ADMIN 可见） ============
+// 由 cloud-cost-sync FC 每日定时拉取阿里云 BSS/CMS 数据写入；前端聚合展示。
+// 仅 ADMIN 角色可见与编辑。
+
+/// 云账单每日快照（只读，由定时同步任务写入）
+model CloudBillSnapshot {
+  id           String   @id @default(uuid())
+  /// 快照日期（YYYY-MM-DD，按 UTC+8 计算）
+  snapshotDate DateTime @db.Date
+  vendor       String   @default("aliyun") @db.VarChar(20)
+  /// 账期月份（YYYY-MM）
+  billingCycle String   @db.VarChar(7)
+  /// 云账号 UID
+  accountId    String?  @db.VarChar(100)
+
+  /// 可用余额
+  /// @precision Decimal
+  balanceAvailable Decimal? @db.Decimal(12, 2)
+  /// 可用现金
+  /// @precision Decimal
+  balanceCash      Decimal? @db.Decimal(12, 2)
+
+  /// 当月累计扣费（资源包抵扣后）
+  /// @precision Decimal
+  mtdAmount      Decimal? @db.Decimal(12, 2)
+  /// 当月累计消耗原价
+  /// @precision Decimal
+  mtdGrossAmount Decimal? @db.Decimal(12, 2)
+
+  /// 按产品的当月明细 [{productCode, productName, paidAmount, grossAmount, subscriptionType}]
+  productBills     Json  @default("[]")
+  /// 资源包列表 [{instanceId, productCode, packageType, region, totalAmount, remainingAmount, unit, status, effectiveTime, expiryTime, applicableProducts, remark}]
+  resourcePackages Json  @default("[]")
+  /// 包年包月订阅实例 [{instanceId, productCode, productName, paidAmount, billingType, expireTime}]
+  subscriptions    Json  @default("[]")
+  /// 原始数据（调试用，可空）
+  rawPayload       Json?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  version   Int       @default(1)
+
+  @@unique([vendor, snapshotDate])
+  @@index([snapshotDate])
+  @@index([billingCycle])
+  @@index([vendor, billingCycle])
+  @@map("cloud_bill_snapshots")
+  @@schema("public")
+}
+
+/// 云资源用量指标（只读，按日聚合写入）
+model CloudUsageMetric {
+  id          String   @id @default(uuid())
+  /// 度量日期（YYYY-MM-DD）
+  metricDate  DateTime @db.Date
+  vendor      String   @default("aliyun") @db.VarChar(20)
+  productCode String   @db.VarChar(20)
+  metricName  String   @db.VarChar(80)
+  /// 实例 ID（聚合数据时为 null）
+  instanceId  String?  @db.VarChar(300)
+  /// @precision Decimal
+  value       Decimal  @db.Decimal(20, 6)
+  unit        String?  @db.VarChar(20)
+  /// 额外维度（如 lineType / bucket / functionName）
+  meta        Json?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  version   Int       @default(1)
+
+  @@unique([vendor, productCode, metricName, instanceId, metricDate], name: "uniq_usage_metric")
+  @@index([metricDate])
+  @@index([productCode, metricDate])
+  @@index([productCode, metricName, metricDate])
+  @@index([instanceId, metricDate])
+  @@map("cloud_usage_metrics")
+  @@schema("public")
+}
+
+/// 云实例元数据（人类维护：别名 / 用途 / 业务归属 / 续费意愿）
+model CloudInstanceMeta {
+  id            String  @id @default(uuid())
+  vendor        String  @default("aliyun") @db.VarChar(20)
+  productCode   String  @db.VarChar(20)
+  /// 阿里云实例 ID（i-xxx / fc_cu_dp_cn-xxx / eip-xxx 等）
+  instanceId    String  @db.VarChar(300)
+  /// 短别名（用于表格展示）
+  alias         String? @db.VarChar(100)
+  /// 详细用途说明
+  purpose       String?
+  /// 业务归属类别：internal / customer / experimental / unknown
+  ownerCategory String? @db.VarChar(30)
+  /// 归属名称（客户名 / 内部模块名）
+  ownerName     String? @db.VarChar(100)
+  /// 续费意愿：auto / manual / cancel / undecided
+  renewalIntent String? @db.VarChar(20)
+  /// 备注
+  notes         String?
+  /// 已归档（不再出现在主表）
+  archived      Boolean @default(false)
+
+  createdAt DateTime  @default(now())
+  createdBy String?
+  updatedAt DateTime  @updatedAt
+  updatedBy String?
+  deletedAt DateTime?
+  version   Int       @default(1)
+
+  @@unique([vendor, productCode, instanceId], name: "uniq_instance_meta")
+  @@index([vendor, productCode])
+  @@index([ownerCategory])
+  @@index([renewalIntent])
+  @@index([archived])
+  @@map("cloud_instance_metas")
+  @@schema("public")
+}
+
+/// 云成本预警事件
+model CloudAlert {
+  id              String    @id @default(uuid())
+  triggeredAt     DateTime  @default(now())
+  vendor          String    @default("aliyun") @db.VarChar(20)
+  /// p0 / p1 / p2
+  level           String    @db.VarChar(10)
+  /// balance_low / package_low / package_expiring / subscription_expiring / spike_anomaly / usage_anomaly / package_runout_early
+  category        String    @db.VarChar(30)
+  title           String    @db.VarChar(200)
+  message         String
+  /// 触发数据快照
+  payload         Json?
+  /// 关联资源（实例 ID / 资源包 ID / 产品代码）
+  relatedResource String?   @db.VarChar(300)
+  /// active / resolved / dismissed
+  status          String    @default("active") @db.VarChar(20)
+  resolvedAt      DateTime?
+  resolvedBy      String?
+  resolutionNote  String?
+
+  createdAt DateTime  @default(now())
+  createdBy String?
+  updatedAt DateTime  @updatedAt
+  updatedBy String?
+  deletedAt DateTime?
+  version   Int       @default(1)
+
+  @@index([triggeredAt])
+  @@index([level])
+  @@index([category])
+  @@index([status])
+  @@index([status, level, triggeredAt])
+  @@map("cloud_alerts")
+  @@schema("public")
+}
+
+// ============ SEO 监测（只 ADMIN 可见） ============
+// 由 seo-sync FC 每日定时拉取 Bing Webmaster + Microsoft Clarity + 百度统计 OpenAPI 数据写入；
+// 前端聚合展示。仅 ADMIN 角色可见与编辑。
+// 设计参照 cloud_* 系列；rawPayload Json? 兜底原始响应。
+
+/// SEO 关键词查询统计（按 site + 日期 + 查询词 唯一）
+/// 数据源：Bing Webmaster Tools /GetQueryStats（每日累计），未来可扩展百度站长
+model SeoSearchQuery {
+  id          String   @id @default(uuid())
+  /// 数据日期（YYYY-MM-DD，按 UTC+8）
+  statDate    DateTime @db.Date
+  /// 数据源：bing / baidu / bing-ai / baidu-suggest 等
+  source      String   @default("bing") @db.VarChar(20)
+  /// 站点 URL（一般是 https://www.example.com）
+  siteUrl     String   @db.VarChar(200)
+  /// 搜索词
+  query       String   @db.VarChar(500)
+  /// 点击数
+  clicks      Int      @default(0)
+  /// 曝光数
+  impressions Int      @default(0)
+  /// 平均排名（小数）
+  /// @precision Decimal
+  avgPosition Decimal? @db.Decimal(6, 2)
+  /// 点击率 0-1
+  /// @precision Decimal
+  ctr         Decimal? @db.Decimal(6, 4)
+  /// 原始响应（调试 / 后续字段扩展用）
+  rawPayload  Json?
+
+  createdAt DateTime  @default(now())
+  createdBy String?
+  updatedAt DateTime  @updatedAt
+  updatedBy String?
+  deletedAt DateTime?
+  version   Int       @default(1)
+
+  @@unique([source, siteUrl, statDate, query], name: "uniq_seo_search_query")
+  @@index([statDate])
+  @@index([source, statDate])
+  @@index([siteUrl, statDate])
+  @@map("seo_search_queries")
+  @@schema("public")
+}
+
+/// SEO 搜索表现权威聚合（Google Search Console site/page 维度）
+/// query 维度会因 GSC 匿名化而少于整站总量，故总 KPI 与页面排行必须读本表。
+model SeoSearchPerformance {
+  id             String   @id @default(uuid())
+  /// 数据日期（YYYY-MM-DD，按 UTC+8）
+  statDate       DateTime @db.Date
+  /// 数据源：当前为 google
+  source         String   @default("google") @db.VarChar(20)
+  /// 展示用站点 URL（一般是 https://www.example.com）
+  siteUrl        String   @db.VarChar(200)
+  /// 聚合维度：site / page
+  dimension      String   @db.VarChar(20)
+  /// site 使用 __SITE__；page 使用 GSC 返回的完整 URL
+  dimensionValue String   @db.VarChar(500)
+  clicks         Int      @default(0)
+  impressions    Int      @default(0)
+  /// @precision Decimal
+  avgPosition    Decimal? @db.Decimal(6, 2)
+  /// 点击率 0-1
+  /// @precision Decimal
+  ctr            Decimal? @db.Decimal(6, 4)
+  rawPayload     Json?
+
+  createdAt DateTime  @default(now())
+  createdBy String?
+  updatedAt DateTime  @updatedAt
+  updatedBy String?
+  deletedAt DateTime?
+  version   Int       @default(1)
+
+  @@unique([source, siteUrl, statDate, dimension, dimensionValue], name: "uniq_seo_search_performance", map: "seo_search_performances_source_siteUrl_statDate_dimension_dimen")
+  @@index([statDate])
+  @@index([source, dimension, statDate])
+  @@index([siteUrl, dimension, statDate])
+  @@map("seo_search_performances")
+  @@schema("public")
+}
+
+/// SEO 页面级洞察（按 site + 日期 + URL 唯一）
+/// 数据源：Microsoft Clarity Data Export API（live-insights），近 3 日窗口
+/// API 限制：每项目每日 10 次调用，1000 sessions / 调用
+model SeoPageInsight {
+  id              String   @id @default(uuid())
+  /// 数据日期（YYYY-MM-DD）
+  statDate        DateTime @db.Date
+  /// 数据源：clarity（未来可扩 baidu-tongji 页面统计）
+  source          String   @default("clarity") @db.VarChar(20)
+  /// 站点 URL
+  siteUrl         String   @db.VarChar(200)
+  /// 页面 URL（相对路径，如 /about/ 或 / ）
+  pageUrl         String   @db.VarChar(500)
+  /// 该页 sessions 数
+  sessions        Int      @default(0)
+  /// 唯一访客数
+  uniqueUsers     Int      @default(0)
+  /// 总浏览页数
+  pageViews       Int      @default(0)
+  /// 平均停留秒数
+  avgEngagementMs Int?
+  /// 滚动深度 0-100
+  scrollDepthAvg  Int?
+  /// 死点击次数
+  deadClicks      Int      @default(0)
+  /// 暴怒点击次数
+  rageClicks      Int      @default(0)
+  /// 快速回退次数（5 秒内离开）
+  quickbacks      Int      @default(0)
+  /// 过度滚动次数
+  excessiveScroll Int      @default(0)
+  /// JS 错误次数
+  jsErrors        Int      @default(0)
+  /// 原始响应
+  rawPayload      Json?
+
+  createdAt DateTime  @default(now())
+  createdBy String?
+  updatedAt DateTime  @updatedAt
+  updatedBy String?
+  deletedAt DateTime?
+  version   Int       @default(1)
+
+  @@unique([source, siteUrl, statDate, pageUrl], name: "uniq_seo_page_insight")
+  @@index([statDate])
+  @@index([source, statDate])
+  @@index([siteUrl, statDate])
+  @@map("seo_page_insights")
+  @@schema("public")
+}
+
+/// SEO 整站流量快照（按 site + 日期 唯一）
+/// 数据源：百度统计 OpenAPI（待 PV>100 开通后启用，schema 先就位）/ 未来可聚合 Bing+Clarity
+model SeoTrafficSnapshot {
+  id              String   @id @default(uuid())
+  /// 数据日期（YYYY-MM-DD）
+  statDate        DateTime @db.Date
+  /// 数据源：baidu-tongji / clarity-aggregate / mixed
+  source          String   @default("baidu-tongji") @db.VarChar(20)
+  /// 站点 URL
+  siteUrl         String   @db.VarChar(200)
+  /// 页面浏览量
+  pv              Int      @default(0)
+  /// 独立访客数
+  uv              Int      @default(0)
+  /// 独立 IP 数
+  ip              Int      @default(0)
+  /// 访问次数（session 数）
+  visitCount      Int      @default(0)
+  /// 跳出率 0-1
+  /// @precision Decimal
+  bounceRate      Decimal? @db.Decimal(6, 4)
+  /// 平均访问时长（秒）
+  avgVisitTime    Int?
+  /// 平均访问页数
+  /// @precision Decimal
+  avgVisitPages   Decimal? @db.Decimal(6, 2)
+  /// 新访客数
+  newVisitor      Int      @default(0)
+  /// 来源细分 [{type: 'search', name: '百度', visits: 12}, ...]
+  sourceBreakdown Json     @default("[]")
+  /// 原始响应
+  rawPayload      Json?
+
+  createdAt DateTime  @default(now())
+  createdBy String?
+  updatedAt DateTime  @updatedAt
+  updatedBy String?
+  deletedAt DateTime?
+  version   Int       @default(1)
+
+  @@unique([source, siteUrl, statDate], name: "uniq_seo_traffic_snapshot")
+  @@index([statDate])
+  @@index([source, statDate])
+  @@index([siteUrl, statDate])
+  @@map("seo_traffic_snapshots")
+  @@schema("public")
+}
+
+/// SEO 同步任务执行记录
+/// 每次 FC 运行都落一条；失败或部分成功时人可查看 errors 字段定位问题
+model SeoSyncRun {
+  id            String    @id @default(uuid())
+  /// 触发源：timer / http
+  triggerSource String    @db.VarChar(20)
+  /// 状态：running / success / partial / failed
+  status        String    @default("running") @db.VarChar(20)
+  startedAt     DateTime  @default(now())
+  finishedAt    DateTime?
+  /// 总耗时毫秒
+  elapsedMs     Int?
+  /// 各源同步成功条数 {bing: 12, clarity: 8, baiduTongji: 0}
+  counts        Json      @default("{}")
+  /// 错误清单 [{source, stage, message}]
+  errors        Json      @default("[]")
+  /// 完整运行报告（开发调试用）
+  report        Json?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  version   Int       @default(1)
+
+  @@index([startedAt])
+  @@index([status])
+  @@index([status, startedAt])
+  @@map("seo_sync_runs")
+  @@schema("public")
+}
+
+// ========================================
+// 小红书聚光 OAuth 与数据分析
+// ========================================
+
+model XiaohongshuOauthState {
+  id         String    @id @default(uuid())
+  stateHash  String    @unique @db.VarChar(64)
+  expiresAt  DateTime
+  consumedAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+  version   Int       @default(1)
+
+  @@index([expiresAt])
+  @@index([consumedAt])
+  @@map("xiaohongshu_oauth_states")
+  @@schema("public")
+}
+
+model XiaohongshuConnection {
+  id                     String    @id @default(uuid())
+  appId                  String    @db.VarChar(50)
+  userId                 String    @db.VarChar(128)
+  roleType               Int
+  approvalRoleType       Int?
+  platformType           Int
+  scopes                 Json      @default("[]")
+  accessTokenCiphertext  String    @db.Text
+  refreshTokenCiphertext String    @db.Text
+  accessTokenExpiresAt   DateTime
+  refreshTokenExpiresAt  DateTime
+  status                 String    @default("active") @db.VarChar(20)
+  lastRefreshedAt        DateTime  @default(now())
+  lastSyncedAt           DateTime?
+  lastError              String?   @db.Text
+  refreshLeaseId         String?   @db.VarChar(64)
+  refreshLeaseUntil      DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+  version   Int       @default(1)
+
+  advertisers XiaohongshuAdvertiser[]
+  syncRuns    XiaohongshuSyncRun[]
+
+  @@unique([appId, userId], name: "uniq_xiaohongshu_connection")
+  @@index([status])
+  @@index([refreshTokenExpiresAt])
+  @@index([refreshLeaseUntil])
+  @@map("xiaohongshu_connections")
+  @@schema("public")
+}
+
+model XiaohongshuAdvertiser {
+  id              String    @id @default(uuid())
+  connectionId    String
+  advertiserId    String    @db.VarChar(50)
+  advertiserName  String    @db.VarChar(200)
+  corporationName String?   @db.VarChar(200)
+  virtualSellerId String?   @db.VarChar(128)
+  status          String    @default("active") @db.VarChar(20)
+  lastSyncedAt    DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+  version   Int       @default(1)
+
+  connection XiaohongshuConnection    @relation(fields: [connectionId], references: [id])
+  reports    XiaohongshuDailyReport[]
+
+  @@unique([connectionId, advertiserId], name: "uniq_xiaohongshu_advertiser")
+  @@index([connectionId])
+  @@index([advertiserId])
+  @@index([status])
+  @@map("xiaohongshu_advertisers")
+  @@schema("public")
+}
+
+model XiaohongshuDailyReport {
+  id                  String   @id @default(uuid())
+  advertiserAccountId String
+  statDate            DateTime @db.Date
+  level               String   @db.VarChar(20)
+  entityId            String   @db.VarChar(128)
+  entityName          String?  @db.VarChar(300)
+  campaignId          String?  @db.VarChar(128)
+  campaignName        String?  @db.VarChar(300)
+  unitId              String?  @db.VarChar(128)
+  unitName            String?  @db.VarChar(300)
+  creativeId          String?  @db.VarChar(128)
+  creativeName        String?  @db.VarChar(300)
+  /// @precision Decimal
+  fee                 Decimal  @default(0) @db.Decimal(18, 2)
+  impression          Int      @default(0)
+  click               Int      @default(0)
+  interaction         Int      @default(0)
+  like                Int      @default(0)
+  comment             Int      @default(0)
+  collect             Int      @default(0)
+  follow              Int      @default(0)
+  share               Int      @default(0)
+  landingPageVisit    Int?
+  formImpression      Int?
+  formSubmit          Int?
+  validFormSubmit     Int?
+  combinedLead        Int?
+  messageUser         Int?
+  messageConsult      Int?
+  messageOpen         Int?
+  messageLead         Int?
+  /// @precision Decimal
+  ctr                 Decimal? @db.Decimal(18, 6)
+  /// 平均点击成本，官方字段名 acp。 @precision Decimal
+  acp                 Decimal? @db.Decimal(18, 6)
+  /// @precision Decimal
+  cpm                 Decimal? @db.Decimal(18, 6)
+  /// @precision Decimal
+  cpi                 Decimal? @db.Decimal(18, 6)
+  dataCaliber         Int      @default(0)
+  rawPayload          Json
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+  version   Int       @default(1)
+
+  advertiserAccount XiaohongshuAdvertiser @relation(fields: [advertiserAccountId], references: [id])
+
+  @@unique([advertiserAccountId, statDate, level, entityId, dataCaliber], name: "uniq_xiaohongshu_daily_report")
+  @@index([advertiserAccountId])
+  @@index([statDate])
+  @@index([level, statDate])
+  @@index([advertiserAccountId, level, statDate])
+  @@map("xiaohongshu_daily_reports")
+  @@schema("public")
+}
+
+model XiaohongshuSyncRun {
+  id            String    @id @default(uuid())
+  connectionId  String?
+  triggerSource String    @db.VarChar(20)
+  status        String    @default("running") @db.VarChar(20)
+  startDate     DateTime? @db.Date
+  endDate       DateTime? @db.Date
+  levels        Json      @default("[]")
+  advertiserIds Json      @default("[]")
+  syncedRows    Int       @default(0)
+  counts        Json      @default("{}")
+  errors        Json      @default("[]")
+  report        Json?
+  startedAt     DateTime  @default(now())
+  finishedAt    DateTime?
+  elapsedMs     Int?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+  version   Int       @default(1)
+
+  connection XiaohongshuConnection? @relation(fields: [connectionId], references: [id])
+
+  @@index([connectionId])
+  @@index([startedAt])
+  @@index([status, startedAt])
+  @@map("xiaohongshu_sync_runs")
+  @@schema("public")
+}
+
+// ========================================
+// 财务模块（finance）
+// 可见性由 RolePermission.finance.* 决定，不再按超管身份硬编码
+// 来源：外部回款表明细流水迁移（工作簿标识由安装方配置，不写入源码）
+// ========================================
+
+/// 财务账户字典（招行 / 支付宝 / 兴业 / 微信 / 现金）
+model FinanceAccount {
+  id                String    @id @default(uuid())
+  /// 程序内引用键：cmb / alipay / cib / wechat / cash
+  code              String    @unique @db.VarChar(40)
+  /// 显示名：招商银行 / 支付宝 / ...
+  name              String    @db.VarChar(50)
+  /// 账户类型：bank / alipay / wechat / cash
+  kind              String    @db.VarChar(20)
+  /// 币种，预留多币种扩展
+  currency          String    @default("CNY") @db.VarChar(10)
+  /// 期初余额（2025-01-01 之前的余额）
+  /// @precision Decimal
+  openingBalance    Decimal   @default(0) @db.Decimal(16, 2)
+  displayOrder      Int       @default(0)
+  status            String    @default("active") @db.VarChar(20)
+  remark            String?
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  ledgers         FinanceLedger[]
+  personalLedgers FinancePersonalLedger[]
+  /// 反向 1:N：被 CRM 回款选作收款账户（绑定方案 v2.1）
+  payments        Payment[]               @relation("PaymentFinanceAccount")
+  creatorEmployee Employee?               @relation("FinanceAccountCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee?               @relation("FinanceAccountUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([deletedAt, displayOrder])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("finance_accounts")
+  @@schema("public")
+}
+
+/// 财务科目字典（P&L 树）
+/// level=1 是分组节点（不可挂账），level=2 是叶子（可挂账）
+/// category：revenue / cogs / opex / tax / other_income / non_pl
+model FinanceSubject {
+  id                String    @id @default(uuid())
+  /// 程序内引用键：revenue.dingtalk_resale / opex.ga_office / ...
+  code              String    @unique @db.VarChar(60)
+  /// 中文显示名（importer 用 name 匹配钉钉 B 列科目字符串）
+  name              String    @unique @db.VarChar(80)
+  /// 大类：revenue / cogs / opex / tax / other_income / non_pl
+  category          String    @db.VarChar(20)
+  /// 1=分组（不可挂账） / 2=叶子（可挂账）
+  level             Int       @default(2)
+  /// 自关联，level=2 必须有 parentId，level=1 可以有也可以无
+  parentId          String?
+  displayOrder      Int       @default(0)
+  status            String    @default("active") @db.VarChar(20)
+  remark            String?
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  parent             FinanceSubject?         @relation("FinanceSubjectTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children           FinanceSubject[]        @relation("FinanceSubjectTree")
+  ledgers            FinanceLedger[]
+  personalLedgers    FinancePersonalLedger[]
+  /// 反向 1:N：被 CRM 回款选作入账科目（绑定方案 v2.1）
+  payments           Payment[]               @relation("PaymentFinanceSubject")
+  /// 反向 1:N：被 CrmProduct 选作默认科目（绑定方案 v2.2）
+  crmProductDefaults CrmProduct[]            @relation("CrmProductDefaultSubject")
+  /// 反向 1:N：被 OrderProduct 选作产品行级科目（绑定方案 v2.2）
+  orderProducts      OrderProduct[]          @relation("OrderProductFinanceSubject")
+  /// 反向 1:N：被 PaymentItem 选作入账科目（绑定方案 v2.2，真 1:N 主轴）
+  paymentItems       PaymentItem[]           @relation("PaymentItemFinanceSubject")
+  creatorEmployee    Employee?               @relation("FinanceSubjectCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee    Employee?               @relation("FinanceSubjectUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([parentId])
+  @@index([category, displayOrder])
+  @@index([deletedAt])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("finance_subjects")
+  @@schema("public")
+}
+
+/// 财务流水（公司账主表，不含「个人」）
+/// runningBalance 不存储，列表查询时由 SQL `SUM() OVER (PARTITION BY account_id ORDER BY tx_date, id)` 派生
+model FinanceLedger {
+  id                String    @id @default(uuid())
+  /// A 列：交易日期
+  txDate            DateTime  @db.Date
+  accountId         String
+  subjectId         String
+  /// D 列：金额（正=收入，负=支出）
+  /// @precision Decimal
+  amount            Decimal   @db.Decimal(16, 2)
+  /// 'in' / 'out'，由 amount 符号派生但冗余存储便于过滤
+  direction         String    @db.VarChar(4)
+  /// C 列：备注
+  remark            String?
+  // 钉钉迁移痕迹（手工新增的流水可不写）
+  /// 'dingtalk_import' / 'manual'
+  source            String    @default("manual") @db.VarChar(20)
+  dingtalkSheetName String?   @db.VarChar(50)
+  dingtalkRowIndex  Int?
+  /// SHA-256(sheetName|rowIndex|txDate|amount|remark)，防重幂等
+  dingtalkRowHash   String?   @unique @db.VarChar(64)
+  // 软关联（预留）
+  saleOrderId       String?
+  payrollRecordId   String?
+  /// CRM 回款绑定（v2.1 1:1，v2.2 调整为 1:N 索引）：保留作为回款溯源索引，但允许同 payment 拆 N 条 ledger（merge_with 场景）
+  paymentId         String?
+  /// CRM 回款绑定（绑定方案 v2.2 新增）：派生 ledger 必填此字段（v2.2 同步钩子按 PaymentItem 派生）
+  /// 1:1 强约束改挂到 PaymentItem 层；手工/钉钉导入流水为 null
+  paymentItemId     String?   @unique
+  importBatchId     String?
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  account         FinanceAccount      @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  subject         FinanceSubject      @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  saleOrder       SaleOrder?          @relation("FinanceLedgerSaleOrder", fields: [saleOrderId], references: [id], onDelete: SetNull)
+  payrollRecord   PayrollRecord?      @relation("FinanceLedgerPayrollRecord", fields: [payrollRecordId], references: [id], onDelete: SetNull)
+  /// CRM 回款绑定的源 Payment（绑定方案 v2.1 1:1 索引，v2.2 改 1:N 索引保留作回款溯源）
+  payment         Payment?            @relation("FinanceLedgerPayment", fields: [paymentId], references: [id], onDelete: SetNull)
+  /// CRM 回款绑定的源 PaymentItem（绑定方案 v2.2，真 1:1 主轴）
+  paymentItem     PaymentItem?        @relation("FinanceLedgerPaymentItem", fields: [paymentItemId], references: [id], onDelete: SetNull)
+  importBatch     FinanceImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  creatorEmployee Employee?           @relation("FinanceLedgerCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee?           @relation("FinanceLedgerUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([txDate, accountId])
+  @@index([accountId, txDate])
+  @@index([subjectId, txDate])
+  @@index([deletedAt, txDate])
+  @@index([importBatchId])
+  @@index([saleOrderId])
+  @@index([payrollRecordId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@index([paymentId])
+  @@map("finance_ledgers")
+  @@schema("public")
+}
+
+/// 私账流水（独立物理表，与 FinanceLedger 字段对齐但无 saleOrderId/payrollRecordId）
+/// 物理隔离 = 权限隔离 = 误查零风险
+model FinancePersonalLedger {
+  id                String    @id @default(uuid())
+  txDate            DateTime  @db.Date
+  accountId         String
+  subjectId         String
+  /// @precision Decimal
+  amount            Decimal   @db.Decimal(16, 2)
+  direction         String    @db.VarChar(4)
+  remark            String?
+  source            String    @default("manual") @db.VarChar(20)
+  dingtalkSheetName String?   @db.VarChar(50)
+  dingtalkRowIndex  Int?
+  dingtalkRowHash   String?   @unique @db.VarChar(64)
+  importBatchId     String?
+  createdAt         DateTime  @default(now())
+  creatorEmployeeId String?
+  updatedAt         DateTime  @updatedAt
+  updaterEmployeeId String?
+  deletedAt         DateTime?
+  version           Int       @default(1)
+
+  account         FinanceAccount      @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  subject         FinanceSubject      @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  importBatch     FinanceImportBatch? @relation("FinancePersonalLedgerImportBatch", fields: [importBatchId], references: [id], onDelete: SetNull)
+  creatorEmployee Employee?           @relation("FinancePersonalLedgerCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee?           @relation("FinancePersonalLedgerUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([txDate, accountId])
+  @@index([accountId, txDate])
+  @@index([subjectId, txDate])
+  @@index([deletedAt, txDate])
+  @@index([importBatchId])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("finance_personal_ledgers")
+  @@schema("public")
+}
+
+/// 财务导入批次（外部回款表表迁移用）
+model FinanceImportBatch {
+  id                 String    @id @default(uuid())
+  /// 'dingtalk' / 'manual'
+  source             String    @default("dingtalk") @db.VarChar(20)
+  workbookId         String?   @db.VarChar(64)
+  /// 解析了哪些 sheet（如 ['2025','2026']）
+  sheetNames         String[]
+  totalRows          Int       @default(0)
+  successRows        Int       @default(0)
+  skippedRows        Int       @default(0)
+  failedRows         Int       @default(0)
+  /// 分流到私账表的行数
+  personalRows       Int       @default(0)
+  /// 'preview' / 'committed' / 'failed'
+  status             String    @default("pending") @db.VarChar(20)
+  /// preview 阶段持久化的解析结果，commit 阶段反序列化重放（避免重新调 dws）
+  previewJson        Json?
+  summaryJson        Json?
+  errorReportJson    Json?
+  /// 双对账结果：balanceDiffs + pnlDiffs + passed
+  reconciliationJson Json?
+  createdAt          DateTime  @default(now())
+  creatorEmployeeId  String?
+  updatedAt          DateTime  @updatedAt
+  updaterEmployeeId  String?
+  deletedAt          DateTime?
+  version            Int       @default(1)
+
+  ledgers         FinanceLedger[]
+  personalLedgers FinancePersonalLedger[] @relation("FinancePersonalLedgerImportBatch")
+  creatorEmployee Employee?               @relation("FinanceImportBatchCreator", fields: [creatorEmployeeId], references: [id], onDelete: SetNull)
+  updaterEmployee Employee?               @relation("FinanceImportBatchUpdater", fields: [updaterEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@index([creatorEmployeeId])
+  @@index([updaterEmployeeId])
+  @@map("finance_import_batches")
+  @@schema("public")
+}
+
+/// 官网第一方埋点事件
+/// 写入由独立 collector（独立 analytics collector）直连 PG 完成，
+/// azeroth 只通过本 model 做只读查询 + 归档（findMany / findFirst / count /
+/// deleteMany / groupBy / aggregate）。
+///
+/// 关键：分区表（PARTITION BY RANGE(received_at)），复合主键 (id, received_at)。
+/// Prisma 不参与该表的 DDL 维护（CREATE/DROP PARTITION 由 collector 管）。
+///
+/// **写入禁用**：不要调 `prisma.webEvent.create() / createMany() / update() /
+/// updateMany() / upsert()`！collector 单边写入；且 PG 侧 `id` 是 GENERATED
+/// ALWAYS AS IDENTITY（不是 Prisma autoincrement 隐含的 BY DEFAULT），显式
+/// 赋 id 会被 PG 直接拒。同理禁止在此仓库跑 `prisma db push` / `prisma migrate
+/// dev` 试图同步该表——会试图把 ALWAYS 改成 BY DEFAULT（生产 RDS 不会被改，
+/// 但本地 dev DB 可能被污染）。
+model WebEvent {
+  id          BigInt    @default(autoincrement())
+  receivedAt  DateTime  @default(now()) @map("received_at") @db.Timestamptz()
+  clientTs    DateTime? @map("client_ts") @db.Timestamptz()
+  site        String
+  event       String
+  vid         String?
+  sid         String?
+  path        String?
+  pageType    String?   @map("page_type")
+  title       String?
+  referrer    String?
+  refHost     String?   @map("ref_host")
+  utmSource   String?   @map("utm_source")
+  utmMedium   String?   @map("utm_medium")
+  utmCampaign String?   @map("utm_campaign")
+  utmTerm     String?   @map("utm_term")
+  utmContent  String?   @map("utm_content")
+  placement   String?
+  channel     String?
+  label       String?
+  ua          String?
+  isBot       Boolean   @default(false) @map("is_bot")
+  ipHash      String?   @map("ip_hash")
+  // IP → 地域反查（collector ip2region 中国本土库解析；ky-azeroth 迁移用 IF NOT EXISTS 对齐 Prisma ledger）。
+  // 明文 IP 坚决不下发；只暴露 country/region/city/isp 四粒度供分析用。
+  country     String?
+  region      String?
+  city        String?
+  isp         String?
+  screen      String?
+  lang        String?
+  raw         Json?
+
+  @@id([id, receivedAt])
+  @@index([receivedAt])
+  @@index([event, receivedAt])
+  @@index([path, receivedAt])
+  @@index([vid, receivedAt])
+  @@index([sid, receivedAt])
+  @@map("events")
+  @@schema("web_analytics")
+}

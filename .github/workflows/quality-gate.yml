@@ -1,0 +1,122 @@
+name: Quality Gate
+
+permissions:
+  contents: read
+
+# 无 paths 过滤的全量规范门禁，并在空库上跑 migrate + bootstrap。
+# 公开副本不包含生产部署 workflow。
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: quality-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  NODE_ENV: test
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/azeroth?schema=public
+  JWT_SECRET: test-jwt-secret-key-for-testing-only
+  JWT_REFRESH_SECRET: test-refresh-secret-key-for-testing-only
+  JWT_ACCESS_EXPIRES_IN: 15m
+  JWT_REFRESH_EXPIRES_IN: 7d
+  BCRYPT_ROUNDS: '4'
+  CORS_ORIGIN: http://localhost:5173
+  THROTTLE_TTL: '60'
+  THROTTLE_LIMIT: '1000'
+  THROTTLE_LOGIN_LIMIT: '1000'
+  THROTTLE_DINGTALK_LOGIN_LIMIT: '1000'
+  THROTTLE_REFRESH_LIMIT: '1000'
+
+jobs:
+  quality-gate:
+    name: 全量规范检查（check:all + typecheck + lint + test + build + 空库 bootstrap）
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: azeroth
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Secret 扫描（完整历史）
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          ARCHIVE="${RUNNER_TEMP}/gitleaks.tar.gz"
+          curl --fail --silent --show-error --location \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            --output "$ARCHIVE"
+          echo "${GITLEAKS_SHA256}  ${ARCHIVE}" | sha256sum --check --strict
+          tar -xzf "$ARCHIVE" -C "$RUNNER_TEMP" gitleaks
+          "${RUNNER_TEMP}/gitleaks" detect --source . --redact --verbose
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      # typecheck 依赖 Prisma Client 类型；check:all 末尾的 prisma validate 也需 schema 可解析。
+      - name: 生成 Prisma Client
+        working-directory: apps/server
+        run: pnpm exec prisma generate
+
+      - name: 代码规范检查（全量）
+        # check:all 末尾的 prisma validate 需 DATABASE_URL 解析 datasource.url=env(...)；
+        # 仅校验 schema 语法、不实际连库，故用占位 URL。
+        run: pnpm run check:all
+
+      - name: 类型检查（全仓）
+        run: pnpm run typecheck
+
+      - name: Lint 检查（全仓）
+        run: pnpm run lint
+
+      - name: 测试（全 workspace）
+        run: pnpm run test
+
+      - name: 构建（全 workspace）
+        run: pnpm run build
+
+      - name: 空库 migrate
+        working-directory: apps/server
+        run: pnpm exec prisma migrate deploy
+
+      - name: 空库 bootstrap
+        env:
+          NODE_ENV: test
+        run: |
+          umask 077
+          mkdir -p "$RUNNER_TEMP/azeroth-secrets"
+          openssl rand -base64 24 > "$RUNNER_TEMP/azeroth-secrets/admin"
+          openssl rand -base64 24 > "$RUNNER_TEMP/azeroth-secrets/approver"
+          chmod 600 "$RUNNER_TEMP/azeroth-secrets/admin" "$RUNNER_TEMP/azeroth-secrets/approver"
+          export AZEROTH_BOOTSTRAP_PASSWORD_FILE="$RUNNER_TEMP/azeroth-secrets/admin"
+          export AZEROTH_APPROVER_PASSWORD_FILE="$RUNNER_TEMP/azeroth-secrets/approver"
+          pnpm --filter @ky-azeroth/server db:seed
+          pnpm --filter @ky-azeroth/server db:seed

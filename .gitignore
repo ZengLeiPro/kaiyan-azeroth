@@ -1,0 +1,100 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.browser-data/
+
+# Build outputs
+dist/
+build/
+.next/
+.nuxt/
+.output/
+.turbo/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+
+# AI tool local config
+.claude/settings.json
+.claude/*.local.*
+.codebuddy/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Prisma
+apps/server/prisma/migrations/*.sql.bak
+apps/server/prisma/seeds/**/*.js
+apps/server/prisma/seeds/**/*.d.ts
+apps/server/prisma/seeds/**/*.js.map
+
+# NestJS auto-generated
+apps/server/src/metadata.ts
+
+# Vite config build artifacts
+apps/web/vite.config.js
+apps/web/vite.config.d.ts
+
+# Backup files
+**/*.backup.*
+
+# Misc
+*.tsbuildinfo
+.eslintcache
+.cache/
+tmp/
+temp/
+
+# OS files
+Thumbs.db
+ehthumbs.db
+
+# Uploads (development)
+uploads/
+public/uploads/
+.dws/
+*.dws
+
+# Scripts with sensitive data
+scripts/*.sh
+scripts/*.js
+scripts/*.py
+# Exception: project tool scripts should be tracked
+!scripts/check-*.js
+!scripts/kill-port.js
+!scripts/run-migration.js
+!scripts/start-web.js
+!scripts/compile-and-restart.js
+!scripts/audit-crm-manager-finance-permissions.js
+!scripts/audit-crm-manager-finance-permissions.test.js
+!scripts/prepare-test-db.js
+
+# Temporary analysis files
+analyze_*.js
+analyze_*.py
+SYSTEM_OVERVIEW.md
+
+# FC deployment package
+fc-deploy/
+ky-azeroth/

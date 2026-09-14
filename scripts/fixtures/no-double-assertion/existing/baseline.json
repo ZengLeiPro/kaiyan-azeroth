@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "policy": "exact-path-and-ast-node; additions forbidden; prune-only",
+  "nodes": [
+    {
+      "path": "apps/example/src/index.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "939eb41c18ae5fb4351b08fd90ebd41667213ff9e54d7afb80e157071d7ac37b",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "{ ok: true } as unknown as { ok: boolean }"
+    }
+  ]
+}

@@ -1,0 +1,211 @@
+> **存量项目说明**
+> 本项目为存量项目（已完成 Phase 0-6 全部改造），已有功能请参阅 `existing_features.md`。
+> 当前阶段为日常迭代维护，所有开发必须严格遵循 `rules.md`（即 CLAUDE.md）规范。
+> feature_list.json 聚焦于现有功能的回归测试与质量验证，不新增功能。但如果遇到测试与验证未达标的功能，要遵循项目规范进行修复。
+
+---
+
+<project_specification>
+  <project_name>Azeroth（KY-Azeroth）</project_name>
+
+  <overview>
+    企业级 CRM + 项目管理 + 工作汇报 + 审批流 内部管理系统。
+    面向中小企业，提供客户关系管理、销售全流程、项目与工时管理、组织人事、审批工作流、钉钉数据同步等一站式解决方案。
+    架构遵循"Single Source of Truth"（shared 包唯一事实来源）、"严格类型安全"（Zod + TypeScript）、"规范化 CRUD"（useCrud + CrudTable 四层架构）的理念。
+    所有迭代开发必须完全遵循 rules.md 中定义的 MUST/SHOULD/MAY 规范。
+  </overview>
+
+  <technology_stack>
+    <infrastructure>
+      <cloud_provider>阿里云</cloud_provider>
+      <compute>函数计算（FC）- Node.js 运行时</compute>
+      <storage>OSS（前端静态托管）、RDS PostgreSQL（数据库）、Redis（缓存）、MinIO（文件存储，开发环境）</storage>
+      <ci_cd>GitHub Actions + 阿里云 FC 部署</ci_cd>
+      <local_dev>Docker Compose（PostgreSQL + Redis + MinIO）</local_dev>
+    </infrastructure>
+    <frontend>
+      <framework>React 18 + Vite</framework>
+      <language>TypeScript（严格模式，禁止 any）</language>
+      <styling>Tailwind CSS + shadcn/ui（Radix Primitives）</styling>
+      <state_management>Zustand（全局状态）+ 自定义 useCrud hook（服务端状态）</state_management>
+      <routing>React Router v6</routing>
+      <form_validation>Zod schema（来自 shared 包）</form_validation>
+      <responsive>桌面端侧边栏 + 移动端底部导航，完整响应式适配</responsive>
+    </frontend>
+    <backend>
+      <framework>NestJS（单体 + Serverless 适配）</framework>
+      <runtime>Node.js >= 22</runtime>
+      <orm>Prisma（PostgreSQL，严格迁移流程）</orm>
+      <validation>nestjs-zod（DTO 自动生成，schema 来自 shared 包）</validation>
+      <auth>JWT（Access Token + Refresh Token）+ Bcrypt + Helmet</auth>
+      <api_style>RESTful，扁平路由 /api/v1/*，NestJS Versioning</api_style>
+    </backend>
+    <monorepo_tooling>
+      <manager>pnpm workspaces + Turbo</manager>
+      <structure>
+        apps/web（前端）
+        apps/server（后端）
+        packages/shared（类型 + Schema + 常量）
+      </structure>
+    </monorepo_tooling>
+  </technology_stack>
+
+  <prerequisites>
+    <environment_setup>
+      - Node.js >= 22, pnpm >= 9
+      - Docker + Docker Compose（本地 PostgreSQL + Redis + MinIO）
+      - 运行 pnpm install 安装依赖
+      - 复制 .env.example 为 .env 并配置数据库连接
+      - 运行 prisma migrate dev 执行数据库迁移
+      - 运行 prisma db seed 填充种子数据
+    </environment_setup>
+  </prerequisites>
+
+  <core_modules>
+    <crm description="客户关系管理，9个子模块">
+      - 客户管理（Customer）：客户信息、等级、来源、标签、区域地址
+      - 联系人（Contact）：客户关联联系人，决策人标记
+      - 商机（Opportunity）：销售漏斗，阶段、金额、赢率、预计成交
+      - 合同订单（SaleOrder）：订单管理，产品明细行（快照模式）
+      - 回款管理（Payment）：回款记录，关联订单与客户
+      - 开票管理（Invoice）：发票记录，类型、税号、状态
+      - 跟进记录（KeepRecord）：客户跟进，类型、签到、附件
+      - 拜访签到（VisitRecord）：上门拜访，签到签退、时长、地址
+      - 产品管理（CrmProduct）：产品目录，独立于订单快照
+    </crm>
+
+    <project_management description="项目管理，3个子模块">
+      - 项目列表（Project）：项目信息、成员管理
+      - 工作项（WorkItem）：任务/缺陷/需求，分配、优先级、进度
+      - 工时记录（EffortRecord）：工作日志，实际工时、工作类型
+    </project_management>
+
+    <reports description="工作汇报，4个子模块（只读）">
+      - CRM日报（CrmWorkDaily）：销售日报，今日拜访/跟进汇总
+      - 钉钉日志（DingtalkLog）：从钉钉同步的日志数据
+      - 日程事件（DingtalkCalendarEvent）：从钉钉同步的日历事件
+      - 离职记录（EmployeeLeave）：离职人员记录
+    </reports>
+
+    <organization description="组织架构，2个子模块">
+      - 员工管理（Employee）：员工信息、钉钉关联、入职/在职/离职
+      - 部门管理（Department）：部门树形结构、部门经理、员工归属
+    </organization>
+
+    <approval description="审批管理，完整审批工作流">
+      - 审批流程设计（ApprovalFlow）：可视化流程设计器，多节点审批
+      - 审批列表（ApprovalInstance）：待办、已办、我发起的、抄送我的
+      - 审批操作：提交、审批、驳回、撤回、管理员强制审批
+    </approval>
+
+    <system description="系统管理，6个子模块">
+      - 用户管理（User）：账号、角色分配、密码管理
+      - 角色权限（Role）：RBAC，模块级细粒度权限
+      - 系统参数（SystemConfig）：全局配置项
+      - 操作日志（OperationLog）：操作审计追溯
+      - 登录日志（LoginLog）：登录行为审计
+      - 通知中心（Notification）：站内通知
+    </system>
+
+    <other description="辅助功能">
+      - 仪表盘（Dashboard）：数据统计总览
+      - 回收站（Trash）：软删除数据恢复
+      - 深色/浅色主题切换
+      - 命令面板（Command Palette）：全局快速搜索
+      - UI 演示页面：组件展示
+    </other>
+  </core_modules>
+
+  <database_schema>
+    <summary>
+      32 个 Prisma Model，分为 6 大类：
+      - 系统核心（10）：User, Session, Role, UserRole, RolePermission, SystemConfig, OperationLog, LoginLog, Notification, SerialNumberCounter
+      - 组织架构（3）：Employee, Department, EmployeeDepartment
+      - CRM（14）：Customer, Contact, Opportunity, SaleOrder, Payment, Invoice, KeepRecord, VisitRecord, CrmProduct, OpportunityProduct, OrderProduct, CrmWorkDaily
+      - 项目管理（4）：Project, ProjectMember, WorkItem, EffortRecord
+      - 审批系统（5）：ApprovalFlow, ApprovalFlowNode, ApprovalInstance, ApprovalTask, ApprovalRecord
+      - 钉钉同步（3+1）：DingtalkLog, DingtalkCalendarEvent, EmployeeLeave, SyncState
+    </summary>
+    <conventions>
+      - 所有模型包含 6 个审计字段：createdAt, updatedAt, deletedAt, createdBy, updatedBy, version
+      - 业务实体使用软删除（deletedAt），不设 onDelete: Cascade
+      - 枚举使用 String + 常量，不使用 Prisma enum
+      - 所有外键字段必须添加 @@index
+      - Decimal 精度敏感字段使用 @precision 注释
+    </conventions>
+  </database_schema>
+
+  <api_endpoints_summary>
+    <total>~150+ RESTful 端点</total>
+    <prefix>/api/v1/*（globalPrefix + enableVersioning 自动组合）</prefix>
+    <auth>
+      - POST /auth/login（公开）
+      - POST /auth/refresh
+      - POST /auth/logout
+    </auth>
+    <crm>每个子模块标准 CRUD：GET（列表）, GET/:id, POST, PUT/:id, DELETE/:id</crm>
+    <projects>标准 CRUD + 成员管理子路由</projects>
+    <approval>提交/审批/撤回/管理员强制 + 列表查询（待办/已办/发起/抄送）</approval>
+    <system>用户/角色/参数/日志标准 CRUD</system>
+    <dashboard>GET /dashboard/stats</dashboard>
+    <health>GET /health（公开，FC 健康检查）</health>
+  </api_endpoints_summary>
+
+  <ui_layout>
+    <responsive_design>
+      - 桌面端：App Shell（侧边栏 + 顶部导航 + 主内容区）
+      - 移动端：底部导航 + 全宽内容 + 手势交互
+      - 断点切换自适应（use-mobile hook）
+    </responsive_design>
+    <crud_page_pattern>
+      四层架构：L1 原子层（shadcn/ui） → L2 业务组件层（patterns/） → L3 布局层（templates/） → L4 应用层（pages/）
+      - StandardToolbar：搜索/筛选/新建/批量操作
+      - CrudTable：分页/排序/行选择/操作列
+      - FormDialog：表单弹窗（Zod 校验）
+      - useCrud：统一 CRUD 状态管理 hook
+    </crud_page_pattern>
+    <navigation>
+      6 大菜单组：CRM(9) / 项目管理(3) / 工作汇报(4) / 组织架构(2) / 审批管理(2) / 系统管理(4)
+      基于角色的菜单过滤（RoleRoute 守卫）
+    </navigation>
+  </ui_layout>
+
+  <governance_rules>
+    所有开发必须遵循 rules.md 中的 MUST 规范（强制），包括：
+    - Single Source of Truth：shared 包唯一事实来源
+    - 前端类型强绑定：Profile extends IXxxResponse
+    - Zod 表单验证：useCrud 必须传入 schema
+    - 后端 DTO：必须使用 nestjs-zod（createZodDto）
+    - Decimal 精度：读取 Number()，提交 String()
+    - 类型安全：禁止 any / @ts-ignore
+    - Prisma 规范：禁止 db push / 手写 SQL / 跳过迁移
+    - API 路由：扁平风格，Controller 不写版本号
+    - 安全规范：JWT Guard / Helmet / CORS / XSS 防护
+    - 25 项自动化检查脚本（pnpm run check:all）
+    提交前必须通过 pnpm run check:all + pnpm typecheck + pnpm build
+  </governance_rules>
+
+  <success_criteria>
+    <functionality>
+      - 所有 CRUD 页面可正常增删改查
+      - 分页/排序/搜索/筛选功能正常
+      - 审批流程完整闭环（提交→审批→完成）
+      - 软删除与回收站恢复正常
+      - 桌面端和移动端均可正常使用
+      - JWT 认证与权限控制严格执行
+    </functionality>
+    <code_quality>
+      - pnpm run check:all 全部通过（25 项检查）
+      - pnpm typecheck 无类型错误
+      - pnpm build 构建成功
+      - 无 any / @ts-ignore / 重复定义
+      - 所有 shared 类型/schema 正确导出和引用
+    </code_quality>
+    <security>
+      - 未授权访问返回 401/403
+      - 密码不在 API 响应中暴露
+      - Helmet 安全头已启用
+      - CORS 正确配置
+    </security>
+  </success_criteria>
+</project_specification>

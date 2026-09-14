@@ -1,0 +1,60 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+allowBuilds:
+  '@alicloud/openapi-core': false
+  '@nestjs/core': false
+  '@prisma/client@6.19.2': true
+  '@prisma/engines@6.19.2': true
+  '@scarf/scarf': false
+  '@swc/core@1.15.8 || 1.15.11': true
+  'esbuild@0.28.1': true
+  'prisma@6.19.2': true
+
+overrides:
+  '@humanfs/node@<0.16.8': 0.16.8
+  'glob@>=10.2.0 <10.5.0': 10.5.0
+  'qs@<6.16.0': 6.16.0
+  '@isaacs/brace-expansion@<=5.0.0': 5.0.1
+  'lodash@<=4.17.23': 4.18.1
+  'js-yaml@>=4.0.0 <4.3.2': 4.3.2
+  'webpack@>=5.49.0 <5.105.2': 5.105.2
+  'tmp@<0.2.4': 0.2.4
+  'esbuild@<0.28.1': 0.28.1
+  'ws@>=8.0.0 <8.21.0': 8.21.0
+  'form-data@>=4.0.0 <4.0.6': 4.0.6
+  'vite@<6.4.3': 6.4.3
+  'minimatch@<10.2.3': 10.2.4
+  'serialize-javascript@<7.0.5': 7.0.5
+  'multer@<2.3.0': 2.3.0
+  'basic-ftp@<5.3.1': 5.3.1
+  'yauzl@<3.2.1': 3.2.1
+  'file-type@<21.3.2': 21.3.2
+  'brace-expansion@>=4.0.0 <5.0.9': 5.0.9
+  'yaml@>=2.0.0 <2.8.3': 2.8.3
+  'yaml@2.8.2': 2.8.3
+  'follow-redirects@<1.16.0': 1.16.0
+  'rollup@>=4.0.0 <4.59.0': 4.59.0
+  'rollup@<2.80.0': 2.80.0
+  'ajv@>=6.0.0 <6.14.0': 6.14.0
+  'ajv@>=7.0.0-alpha.0 <8.18.0': 8.18.0
+  flatted: '>=3.4.0'
+  'path-to-regexp@>=8.0.0 <8.4.0': 8.4.2
+  'defu@<=6.1.4': 6.1.6
+  'picomatch@>=4.0.0 <4.0.4': 4.0.4
+  'picomatch@<2.3.2': 2.3.2
+  'path-to-regexp@<0.1.13': 0.1.13
+  'effect@<3.20.0': 3.21.0
+  'fast-uri@<3.1.6': 3.1.6
+  'axios@<1.18.0': 1.18.0
+  'postcss@<8.5.23': 8.5.26
+  'postcss-selector-parser@>=6.1.0 <6.1.3': 6.1.3
+  'body-parser@<2.3.0': 2.3.0
+  '@babel/plugin-transform-modules-systemjs@>=7.12.0 <7.29.4': 7.29.4
+  '@babel/core@<7.29.6': 7.29.6
+  'piscina@<=4.9.2': 4.9.3
+  'nanoid@<3.3.18': 3.3.18
+  'deepmerge-ts@<8.0.0': 8.0.0
+  '@xhmikosr/decompress@<10.2.1': 10.2.1
+  'browserslist@<=4.28.6': 4.28.7

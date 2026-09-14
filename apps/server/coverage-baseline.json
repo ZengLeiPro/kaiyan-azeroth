@@ -1,0 +1,7 @@
+{
+  "comment": "Backend coverage ratchet baseline captured on 2026-06-25 after latest green unit coverage. Keep this file close to or below the latest green main coverage; do not lower values without an explicit production-risk note.",
+  "statements": 44,
+  "branches": 39,
+  "functions": 38,
+  "lines": 45
+}

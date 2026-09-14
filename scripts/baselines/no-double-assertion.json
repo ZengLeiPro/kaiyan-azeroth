@@ -1,0 +1,734 @@
+{
+  "version": 1,
+  "policy": "exact-path-and-ast-node; additions forbidden; prune-only",
+  "nodes": [
+    {
+      "path": "apps/cli/src/commands/cloud-usage-metrics.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "6a03e2cfd7d424eb8408a3d1e86ecda66a74659a4ff0fba102e2b0f59fe8af8c",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "params as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/effort-records.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8d032fb989265716032741429bd9b6e94ac1a2998bd7c49e59b446882a983044",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "body as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/payroll.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8d032fb989265716032741429bd9b6e94ac1a2998bd7c49e59b446882a983044",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "body as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/payroll.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8d032fb989265716032741429bd9b6e94ac1a2998bd7c49e59b446882a983044",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "body as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/payroll.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8d032fb989265716032741429bd9b6e94ac1a2998bd7c49e59b446882a983044",
+      "occurrence": 3,
+      "controller": false,
+      "preview": "body as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/project-tickets.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8d032fb989265716032741429bd9b6e94ac1a2998bd7c49e59b446882a983044",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "body as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/sales-action-items.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8c95739f30e02f47138a40a255e4ceddea419c05861a7e2db896a0dfd3127458",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "query as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/sales-action-items.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8c95739f30e02f47138a40a255e4ceddea419c05861a7e2db896a0dfd3127458",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "query as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/sales-action-items.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8d032fb989265716032741429bd9b6e94ac1a2998bd7c49e59b446882a983044",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "body as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/sales-action-items.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8d032fb989265716032741429bd9b6e94ac1a2998bd7c49e59b446882a983044",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "body as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/sales-action-items.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8d032fb989265716032741429bd9b6e94ac1a2998bd7c49e59b446882a983044",
+      "occurrence": 3,
+      "controller": false,
+      "preview": "body as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/system-params.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8d032fb989265716032741429bd9b6e94ac1a2998bd7c49e59b446882a983044",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "body as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/users.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8d032fb989265716032741429bd9b6e94ac1a2998bd7c49e59b446882a983044",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "body as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/users.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8d032fb989265716032741429bd9b6e94ac1a2998bd7c49e59b446882a983044",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "body as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cli/src/commands/users.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8c95739f30e02f47138a40a255e4ceddea419c05861a7e2db896a0dfd3127458",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "query as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/cloud-cost-sync/src/sync/alert-engine.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "b5a7904a2b98805c337f8a986d49e9164f8d7bebe6938fbcfdaf113c863b1bd3",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "p.payload as unknown as Prisma.InputJsonValue"
+    },
+    {
+      "path": "apps/cloud-cost-sync/src/sync/sync-snapshot.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "04115c04144aae661dd88a8938b5dc06993f2bbed4ccfb67d181573f4cd7d603",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "productBillsJson as unknown as Prisma.InputJsonValue"
+    },
+    {
+      "path": "apps/cloud-cost-sync/src/sync/sync-snapshot.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "259284e3742a955d6b9ef7793661c9ef19b21d1cdd344d326f3cfb5a29bac77f",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "resourcePackagesJson as unknown as Prisma.InputJsonValue"
+    },
+    {
+      "path": "apps/cloud-cost-sync/src/sync/sync-snapshot.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "d16f5ba60a5165177688e34039ea5bae193c926b22777cf5cc5767a2cf438887",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "subscriptionsJson as unknown as Prisma.InputJsonValue"
+    },
+    {
+      "path": "apps/cloud-cost-sync/src/sync/sync-snapshot.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "d43b2352ad1bc1cc246ed73d531c631dd15acff80d4349ce05c9d5e871f0948d",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "{ instanceBillsCount: instanceBills.length, unseenProductCodes: unseen, } as unknown as Prisma.InputJsonValue"
+    },
+    {
+      "path": "apps/cloud-cost-sync/src/sync/sync-usage.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "da8ba1b86ae1a364a71188ac7c13689892694976f18f42e2f132dde5b833f4fa",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "a.meta as unknown as Prisma.InputJsonValue"
+    },
+    {
+      "path": "apps/seo-sync/src/sync/sync-bing.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "5eea34379b4c809ef9cdff7831498e64b7b1945be3a8a0a957085adfd1da4602",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "row as unknown as object"
+    },
+    {
+      "path": "apps/seo-sync/src/sync/sync-bing.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "5eea34379b4c809ef9cdff7831498e64b7b1945be3a8a0a957085adfd1da4602",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "row as unknown as object"
+    },
+    {
+      "path": "apps/seo-sync/src/sync/sync-clarity.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "d98f469fe5b0f61466c2bac1fc51280f8329997cfd153cec0865116d0fb20f1f",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "p as unknown as object"
+    },
+    {
+      "path": "apps/seo-sync/src/sync/sync-engine.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "9a248585e74a78311b644240ae2713b64a4a8e45e76887d90b5bacefad0ec916",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "{} as unknown as Prisma.InputJsonValue"
+    },
+    {
+      "path": "apps/seo-sync/src/sync/sync-engine.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "da172e5ce299252c1549f5c7ca1ed2d0381f1b0d3a08108c1e64d621312417a3",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "[] as unknown as Prisma.InputJsonValue"
+    },
+    {
+      "path": "apps/seo-sync/src/sync/sync-engine.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "177680c5f1e9d39ffaf8b4b857780084cb1326530841bf563b26bc46e5f7fdc2",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "errors as unknown as Prisma.InputJsonValue"
+    },
+    {
+      "path": "apps/seo-sync/src/sync/sync-engine.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c56121a6620da5dca1a2a5b045fa83f476dd6cfaddcbd241b52d771edd4f4f11",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "{ bing: bingResult, clarity: clarityResult, google: googleResult, } as unknown as Prisma.InputJsonValue"
+    },
+    {
+      "path": "apps/server/src/common/utils/json-type-helpers.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "89e4dcb98b7e97f7254ec5227cab35e97175319d01303309330cc36b15269eb5",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "attachments.map((att, index) => ({ id: att.id || `attachment-${Date.now()}-${index}`, name: att.name, url: att.url, size: att.size || 0, mimeType: att.mimeType || att.type || 'appl"
+    },
+    {
+      "path": "apps/server/src/common/utils/json-type-helpers.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "3fb21566b6cfb35a524ca71c64c89b33ccbcb0d6c0b12a8cc73d44b520a15173",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "value as unknown as Prisma.InputJsonValue"
+    },
+    {
+      "path": "apps/server/src/internal/internal.controller.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "92eab7f72fa55ed9774f423497920ede5a70b28bd86636fb46e1f19fa28c50f7",
+      "occurrence": 1,
+      "controller": true,
+      "preview": "existing.resultJson as unknown as PreparedImportResult"
+    },
+    {
+      "path": "apps/server/src/modules/activities/activities.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "18a7fac6b8120896d5b679375bf86610efc6d039662d5fe97fceebffb4713fbb",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "rows as unknown as OperationLogRow[]"
+    },
+    {
+      "path": "apps/server/src/modules/approval-flows/approval-flows.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "d3524289436f326c0947b9652fc0c238351d12370fae2c8ad025658aeb1a2afe",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "result as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/approval-flows/approval-flows.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "d3524289436f326c0947b9652fc0c238351d12370fae2c8ad025658aeb1a2afe",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "result as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/approval-flows/approval-flows.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "f83572e0f7b56c7cb404fb1be5475b890269ce92e79db7e151453d977b0a7aa5",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "item as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/approval-flows/approval-flows.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "e4b913f9198515f53fb146f3ce5f3e51119634899d3c46dc2a100bcf2ea1cb41",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "flow as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/approval-flows/approval-flows.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "e4b913f9198515f53fb146f3ce5f3e51119634899d3c46dc2a100bcf2ea1cb41",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "flow as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/approval-flows/approval-flows.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "f83572e0f7b56c7cb404fb1be5475b890269ce92e79db7e151453d977b0a7aa5",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "item as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/approval-flows/approval-flows.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "235f61d00cad97dc9827b5de271c92be0272aeb856632e1d603d1832d7a11bc0",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "activated as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/approval-flows/approval-flows.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "36c2522f3c3259886e37e6acbcb37c6fd478ee842d303ec5278a726be63fbf08",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "current as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/approval-flows/approval-flows.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "b6525275a0057e2fde3a0399823dc00adf5d5327f913560b81f96048fc55438d",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "deactivated as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/approval-flows/approval-flows.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "235f61d00cad97dc9827b5de271c92be0272aeb856632e1d603d1832d7a11bc0",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "activated as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/approvals/approval-change-requests.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "6e8be068276d76b286848e74b0d69120eb52537345629556434d4f6ba2e629fa",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "change as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/approvals/approval-change-requests.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "074a6768d67122fa2f36bb5083c0b34d04d32ed8df195415dd14c4160c2da0c5",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "snapshot as unknown as SaleOrderVoidDependencySnapshot"
+    },
+    {
+      "path": "apps/server/src/modules/approvals/business-approval.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "a4af93d74c94c4c645d8b8cbe1dbb2ed46894f62b1a782cb277c05d20fb1f5ed",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "instance as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/approvals/business-approval.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8fbf2f5df4f6207aaea8867362e2cef8f9400eedb4045c0d1b73a7964f61116b",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "record as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/approvals/business-approval.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8fbf2f5df4f6207aaea8867362e2cef8f9400eedb4045c0d1b73a7964f61116b",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "record as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/cloud-alerts/cloud-alerts.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "f83572e0f7b56c7cb404fb1be5475b890269ce92e79db7e151453d977b0a7aa5",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "item as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/cloud-alerts/cloud-alerts.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c580529e7646b3ecc7eba706307dd359a6446789196e21352df930dfeef79c65",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "row as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/cloud-alerts/cloud-alerts.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c580529e7646b3ecc7eba706307dd359a6446789196e21352df930dfeef79c65",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "row as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/cloud-bill-snapshots/cloud-bill-snapshots.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "4965bf03b1d95f614b28b64bf11e5ecafbf5ff458ae68c7f15a1b447cb43a92b",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "latest as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/cloud-bill-snapshots/cloud-bill-snapshots.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c580529e7646b3ecc7eba706307dd359a6446789196e21352df930dfeef79c65",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "row as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/cloud-instance-metas/cloud-instance-metas.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "f83572e0f7b56c7cb404fb1be5475b890269ce92e79db7e151453d977b0a7aa5",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "item as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/cloud-instance-metas/cloud-instance-metas.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c580529e7646b3ecc7eba706307dd359a6446789196e21352df930dfeef79c65",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "row as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/cloud-instance-metas/cloud-instance-metas.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c580529e7646b3ecc7eba706307dd359a6446789196e21352df930dfeef79c65",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "row as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/cloud-instance-metas/cloud-instance-metas.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c580529e7646b3ecc7eba706307dd359a6446789196e21352df930dfeef79c65",
+      "occurrence": 3,
+      "controller": false,
+      "preview": "row as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/customers/customers.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "6ab88ad2bceec6043e1a6f1f09224e78917e1537505f3e9a501430c30ad4f78b",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "dto as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/customers/customers.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "1d30d7abe0f24731d94eb1022710696d6af8f917ac31d21d4481471a7cbb9080",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "{ customerId: args.customerId, keepRecordType: 'other', keepRecordTime: new Date().toISOString(), keepRecordContent: content, keepRecordStatus: '客户维护', chargerId, source: KEEP_RECO"
+    },
+    {
+      "path": "apps/server/src/modules/customers/customers.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/customers/customers.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/finance/import/services/finance-import.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "d14b98bd74afdc631a2d8448354264a267ff620f16b664fdcde04d0d58b65f76",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "batch.previewJson as unknown as PreviewPayload"
+    },
+    {
+      "path": "apps/server/src/modules/invoices/invoices.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/invoices/invoices.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/payments/payments.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/payments/payments.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/payments/payments.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 3,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/payments/payments.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 4,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/payroll/payroll.controller.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "bf56f31a2d5ef538a407b3c574aab0d37809f0e77490e0f481366d9ece42014d",
+      "occurrence": 1,
+      "controller": true,
+      "preview": "this.payrollService.listPeriods() as unknown as PayrollPeriodListResponseDto"
+    },
+    {
+      "path": "apps/server/src/modules/payroll/payroll.controller.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "62223c6ac54a17557c1333c64b2e5535759d54ed1348b4cc688a582864ca4593",
+      "occurrence": 1,
+      "controller": true,
+      "preview": "this.payrollImportService.listImportBatches() as unknown as PayrollImportBatchListResponseDto"
+    },
+    {
+      "path": "apps/server/src/modules/payroll/payroll.controller.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8b9f4868f94154de5cd9a02e8042c18add4c72711af18ed86b346ec1c493023b",
+      "occurrence": 1,
+      "controller": true,
+      "preview": "this.payrollImportService.getImportBatch(id) as unknown as PayrollImportBatchResponseDto"
+    },
+    {
+      "path": "apps/server/src/modules/sale-orders/sale-orders.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/sale-orders/sale-orders.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/sale-orders/sale-orders.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 3,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/sale-orders/sale-orders.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 4,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/seo-monitor/seo-monitor.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "4965bf03b1d95f614b28b64bf11e5ecafbf5ff458ae68c7f15a1b447cb43a92b",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "latest as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/seo-monitor/seo-monitor.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c580529e7646b3ecc7eba706307dd359a6446789196e21352df930dfeef79c65",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "row as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/seo-monitor/seo-monitor.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c580529e7646b3ecc7eba706307dd359a6446789196e21352df930dfeef79c65",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "row as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/seo-monitor/seo-monitor.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c580529e7646b3ecc7eba706307dd359a6446789196e21352df930dfeef79c65",
+      "occurrence": 3,
+      "controller": false,
+      "preview": "row as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/seo-monitor/seo-monitor.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c580529e7646b3ecc7eba706307dd359a6446789196e21352df930dfeef79c65",
+      "occurrence": 4,
+      "controller": false,
+      "preview": "row as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/visit-records/visit-records.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/visit-records/visit-records.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c479626cf8eedd4f6d6904187424ac9fd561e194c5cd959ee7813b425dcb53cd",
+      "occurrence": 2,
+      "controller": false,
+      "preview": "existing as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/server/src/modules/web-analytics/web-analytics.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "5fc796782191765abd0ea083449e6b089177a02acf98b9950bdffe00a1ef27b3",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "Object.fromEntries(entries) as unknown as IWebAnalyticsFilterOptionsResponse"
+    },
+    {
+      "path": "apps/server/src/modules/xiaohongshu/xiaohongshu.service.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "60c2bceca1a0b38e25a50e1d35791f11a9e9be9cca1831ab46b4192d34bf9a28",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "row.errors as unknown as SyncError[]"
+    },
+    {
+      "path": "apps/web/src/components/patterns/related-entity-list.tsx",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "c580529e7646b3ecc7eba706307dd359a6446789196e21352df930dfeef79c65",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "row as unknown as Record<string, unknown>"
+    },
+    {
+      "path": "apps/web/src/pages/analytics/CrmAnalyticsPage.tsx",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "df7819b33cc0ed7752a328276739ea2712656599ad92192aa15484890869cb18",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "trend.data.points as unknown as Array<Record<string, string | number>>"
+    },
+    {
+      "path": "apps/web/src/pages/finance/ledger/components/CompanyLedgerView.tsx",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "3b7127b5fcabbe900de8626086319e1ddaeabd1c8627e948911ba68cdb899db0",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "createFinanceLedgerSchema.pick({ txDate: true, accountId: true, subjectId: true, amount: true, direction: true, remark: true, }) as unknown as z.ZodType<LedgerFormData>"
+    },
+    {
+      "path": "apps/web/src/pages/finance/ledger/components/PnLView.tsx",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "bbb56a3c85e16d50c5bc97fa6e5c823ef713046c66d04cec8ebb855e94ae35d4",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "month as unknown as keyof FinancePnlRow['months']"
+    },
+    {
+      "path": "apps/web/src/pages/finance/payroll/types.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "82b79bab6ff6e0e886f98156dc2543ae315b22e6aea8a6fe7951f1098b981dc2",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "createPayrollSchema.extend({ version: z.number().int().optional(), }) as unknown as z.ZodType<PayrollFormData>"
+    },
+    {
+      "path": "apps/web/src/pages/ops/cloud-cost/instances/types.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "ae4460b6d2069b2adf173e9e879319077748e81c2966e900d5568436560b1f74",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "createCloudInstanceMetaSchema as unknown as z.ZodType<CloudInstanceMetaFormData>"
+    },
+    {
+      "path": "apps/web/src/stores/rate-limit.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "6a0086bc82e6c3d8f5605e067a62a425fda18f5b30994da024f4d734e7731372",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "timer as unknown as { unref?: () => void }"
+    },
+    {
+      "path": "packages/shared/src/schemas/column-meta.ts",
+      "syntaxKind": "AsExpression",
+      "nodeHash": "8f91401fa9cda9917d80477c31b0c5cb44946a020f798135105f1cfa1d118a72",
+      "occurrence": 1,
+      "controller": false,
+      "preview": "current as unknown as { _def?: { innerType?: z.ZodTypeAny; schema?: z.ZodTypeAny } }"
+    }
+  ]
+}

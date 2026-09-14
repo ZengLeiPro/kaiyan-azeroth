@@ -1,0 +1,13 @@
+{
+  "comment": "Backend module-level coverage ratchet. Values are intentionally below the latest green unit coverage to avoid flaky failures while preventing module-level dilution.",
+  "modules": {
+    "common": { "statements": 55, "branches": 45, "functions": 55, "lines": 55 },
+    "modules/auth": { "statements": 50, "branches": 35, "functions": 40, "lines": 50 },
+    "modules/customers": { "statements": 44, "branches": 45, "functions": 35, "lines": 45 },
+    "modules/payments": { "statements": 40, "branches": 40, "functions": 25, "lines": 40 },
+    "modules/invoices": { "statements": 28, "branches": 35, "functions": 18, "lines": 30 },
+    "modules/sale-orders": { "statements": 57, "branches": 58, "functions": 35, "lines": 58 },
+    "modules/approvals": { "statements": 50, "branches": 35, "functions": 45, "lines": 50 },
+    "modules/finance": { "statements": 35, "branches": 30, "functions": 30, "lines": 35 }
+  }
+}

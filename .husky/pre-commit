@@ -1,0 +1,29 @@
+# 自动化规范检查（实际集合由 check:all 与 meta-consistency 管理）
+echo "运行自动化规范检查..."
+(
+  export DATABASE_URL='postgresql://dummy:dummy@127.0.0.1:5432/dummy?schema=public'
+  pnpm run check:all
+) || exit 1
+
+# 类型检查
+echo "运行类型检查..."
+pnpm run typecheck || exit 1
+
+# 全量 Lint 检查
+echo "运行全量 Lint 检查..."
+pnpm run lint || exit 1
+
+# 全 workspace 测试（上传安全测试依赖 Linux /proc/self/fd；非 Linux 主机走同仓库 Docker 门禁）
+echo "运行全 workspace 测试..."
+if [ "$(uname -s)" = "Linux" ]; then
+  pnpm run test || exit 1
+else
+  pnpm run test:linux || exit 1
+fi
+
+# 全 workspace 构建（Turbo 命中前序 test 的 build 缓存，不重复做无效工作）
+echo "运行全 workspace 构建..."
+pnpm run build || exit 1
+
+# Lint 和格式化（暂存文件自动修复）
+npx lint-staged
