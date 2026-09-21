@@ -39,7 +39,7 @@
     "@nestjs/platform-express": "^11.1.18",
     "@nestjs/schedule": "^6.1.1",
     "@nestjs/swagger": "^11.0.0",
-    "@nestjs/throttler": "^6.0.0",
+    "@nestjs/throttler": "^6.7.0",
     "@prisma/client": "^6.19.2",
     "@types/mime-types": "^3.0.1",
     "axios": "^1.20.0",
