@@ -71,11 +71,11 @@ importers:
         specifier: ^17.4.1
         version: 17.4.1
       prettier:
-        specifier: ^3.2.0
-        version: 3.7.4
+        specifier: ^3.9.8
+        version: 3.9.8
       prettier-plugin-tailwindcss:
         specifier: ^0.8.1
-        version: 0.8.1(prettier@3.7.4)
+        version: 0.8.1(prettier@3.9.8)
       turbo:
         specifier: ^2.9.14
         version: 2.10.7
@@ -307,10 +307,10 @@ importers:
         version: 9.39.2
       '@nestjs/cli':
         specifier: ^11.0.0
-        version: 11.0.21(@swc/cli@0.7.9(@swc/core@1.15.8)(chokidar@4.0.3)(supports-color@8.1.1))(@swc/core@1.15.8)(@types/node@22.19.3)(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.27)(prettier@3.7.4)
+        version: 11.0.21(@swc/cli@0.7.9(@swc/core@1.15.8)(chokidar@4.0.3)(supports-color@8.1.1))(@swc/core@1.15.8)(@types/node@22.19.3)(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.27)(prettier@3.9.8)
       '@nestjs/schematics':
         specifier: ^11.0.0
-        version: 11.1.0(chokidar@4.0.3)(prettier@3.7.4)(typescript@5.9.3)
+        version: 11.1.0(chokidar@4.0.3)(prettier@3.9.8)(typescript@5.9.3)
       '@nestjs/testing':
         specifier: ^11.1.18
         version: 11.1.21(@nestjs/common@11.2.3(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@8.1.1))(@nestjs/core@11.1.21)(@nestjs/platform-express@11.1.21)
@@ -5880,8 +5880,8 @@ packages:
       prettier-plugin-svelte:
         optional: true
 
-  prettier@3.7.4:
-    resolution: {integrity: sha512-v6UNi1+3hSlVvv8fSaoUbggEM5VErKmmpGA7Pl3HF8V6uKY7rvClBOJlH6yNwQtfTueNkGVpOv/mtWL9L4bgRA==}
+  prettier@3.9.8:
+    resolution: {integrity: sha512-WRFq3Wn3WId7LLROfMLdH7xaFr2jR62wU8nLO6rQUOLOxNZUviyJQs1M0iIhLexSFy+L+w0ch66wtoO2jRjG0A==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -8777,13 +8777,13 @@ snapshots:
       '@napi-rs/nice-win32-x64-msvc': 1.1.1
     optional: true
 
-  '@nestjs/cli@11.0.21(@swc/cli@0.7.9(@swc/core@1.15.8)(chokidar@4.0.3)(supports-color@8.1.1))(@swc/core@1.15.8)(@types/node@22.19.3)(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.27)(prettier@3.7.4)':
+  '@nestjs/cli@11.0.21(@swc/cli@0.7.9(@swc/core@1.15.8)(chokidar@4.0.3)(supports-color@8.1.1))(@swc/core@1.15.8)(@types/node@22.19.3)(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.27)(prettier@3.9.8)':
     dependencies:
       '@angular-devkit/core': 19.2.24(chokidar@4.0.3)
       '@angular-devkit/schematics': 19.2.24(chokidar@4.0.3)
       '@angular-devkit/schematics-cli': 19.2.24(@types/node@22.19.3)(chokidar@4.0.3)
       '@inquirer/prompts': 7.10.1(@types/node@22.19.3)
-      '@nestjs/schematics': 11.1.0(chokidar@4.0.3)(prettier@3.7.4)(typescript@5.9.3)
+      '@nestjs/schematics': 11.1.0(chokidar@4.0.3)(prettier@3.9.8)(typescript@5.9.3)
       ansis: 4.2.0
       chokidar: 4.0.3
       cli-table3: 0.6.5
@@ -8890,7 +8890,7 @@ snapshots:
       '@nestjs/core': 11.1.21(@nestjs/common@11.2.3(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@8.1.1))(@nestjs/platform-express@11.1.21)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       cron: 4.4.0
 
-  '@nestjs/schematics@11.1.0(chokidar@4.0.3)(prettier@3.7.4)(typescript@5.9.3)':
+  '@nestjs/schematics@11.1.0(chokidar@4.0.3)(prettier@3.9.8)(typescript@5.9.3)':
     dependencies:
       '@angular-devkit/core': 19.2.24(chokidar@4.0.3)
       '@angular-devkit/schematics': 19.2.24(chokidar@4.0.3)
@@ -8899,7 +8899,7 @@ snapshots:
       pluralize: 8.0.0
       typescript: 5.9.3
     optionalDependencies:
-      prettier: 3.7.4
+      prettier: 3.9.8
     transitivePeerDependencies:
       - chokidar
 
@@ -12884,11 +12884,11 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-tailwindcss@0.8.1(prettier@3.7.4):
+  prettier-plugin-tailwindcss@0.8.1(prettier@3.9.8):
     dependencies:
-      prettier: 3.7.4
+      prettier: 3.9.8
 
-  prettier@3.7.4: {}
+  prettier@3.9.8: {}
 
   pretty-bytes@5.6.0: {}
 
