@@ -70,7 +70,7 @@ jobs:
           "${RUNNER_TEMP}/gitleaks" detect --source . --redact --verbose
 
       - name: 安装 pnpm
-        uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
+        uses: pnpm/action-setup@5eea8caf49c844361c1e9ddc1324e179c54b58e9 # v6
 
       - name: 设置 Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
